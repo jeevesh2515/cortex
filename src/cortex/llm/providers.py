@@ -14,6 +14,7 @@ import logging
 import os
 import time
 from collections.abc import Sequence
+from typing import Any
 
 import httpx
 
@@ -96,13 +97,16 @@ class OpenAICompatProvider:
         timeout: float = 60.0,
     ) -> CompletionResult:
         url = f"{self.spec.base_url.rstrip('/')}/chat/completions"
-        payload = {
+        payload: dict[str, Any] = {
             "model": self.spec.model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stream": False,
         }
+        # Provider-specific fields, notably OpenRouter's per-request `zdr`.
+        # Server-side enforcement beats a local flag we cannot verify.
+        payload.update(self.spec.request_body())
 
         started = time.monotonic()
         try:

@@ -9,7 +9,7 @@ mlx-lm is a config change rather than a code change.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from cortex.models import DataPolicy, Sensitivity
 
@@ -107,7 +107,25 @@ class ProviderSpec:
     """Lower sorts earlier in the fallback chain."""
 
     extra_headers: dict[str, str] = field(default_factory=dict)
+    extra_body: dict[str, Any] = field(default_factory=dict)
+    """Extra JSON body fields merged into every request to this provider."""
+
     enabled: bool = True
+
+    def request_body(self) -> dict[str, Any]:
+        """Provider-specific fields to merge into the request payload.
+
+        This is where ``zdr_enabled`` acquires teeth. Left as a config flag
+        alone it would only assert to the privacy gate that the account *has*
+        zero-data-retention configured -- an unverifiable promise, and the whole
+        point of the gate is not taking promises on trust. OpenRouter accepts
+        ``zdr`` as a per-request parameter, so we send it and let the server
+        enforce it rather than believing the local flag.
+        """
+        body: dict[str, Any] = dict(self.extra_body)
+        if self.requires_zdr and self.zdr_enabled:
+            body.setdefault("zdr", True)
+        return body
 
     def accepts(self, sensitivity: Sensitivity) -> bool:
         """Whether this provider may receive content at the given sensitivity.

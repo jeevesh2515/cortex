@@ -68,7 +68,10 @@ def default_providers() -> list[ProviderSpec]:
         ProviderSpec(
             name="openrouter",
             base_url="https://openrouter.ai/api/v1",
-            model="meta-llama/llama-3.3-70b-instruct:free",
+            # The free roster rotates weekly, so pin the auto-router rather
+            # than a slug that will 404 in a fortnight. openrouter/free selects
+            # from whatever free models are currently available.
+            model="openrouter/free",
             policy=DataPolicy.NO_TRAIN_IF_ZDR,
             api_key_env="OPENROUTER_API_KEY",
             max_context=128_000,
