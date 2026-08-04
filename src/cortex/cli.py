@@ -163,6 +163,9 @@ def ask(
     local_only: Annotated[
         bool, typer.Option("--local-only", help="Never leave this machine.")
     ] = False,
+    remember: Annotated[
+        bool, typer.Option("--remember", help="Save this exchange as a note in your vault.")
+    ] = False,
     verbose: Annotated[bool, typer.Option("--verbose")] = False,
 ) -> None:
     """Answer a question from your notes, with citations."""
@@ -209,6 +212,16 @@ def ask(
         marker = "[yellow]escalated[/yellow]" if answer.escalated else "[green]local[/green]"
         console.print(f"\n[dim]{answer.provider} ({marker}) - {answer.elapsed_ms:.0f}ms[/dim]")
 
+        if (remember or rt.settings.memory_auto) and rt.memory is not None:
+            try:
+                written = rt.memory.from_answer(answer)
+            except OSError as exc:
+                err_console.print(f"[yellow]could not save memory note: {exc}[/yellow]")
+            else:
+                if written is not None:
+                    rel = written.relative_to(rt.settings.vault_path)
+                    console.print(f"[dim]remembered -> {rel}[/dim]")
+
 
 @app.command()
 def status(
@@ -242,6 +255,13 @@ def status(
         else:
             table.add_row("Reranker", "[dim]disabled[/dim]")
         table.add_row("Vault name", rt.settings.display_vault_name)
+        if rt.memory is not None and rt.memory.enabled:
+            mode = "auto" if rt.settings.memory_auto else "on request"
+            table.add_row(
+                "Memory", f"{rt.memory.count()} notes in {rt.settings.memory_folder}/ ({mode})"
+            )
+        else:
+            table.add_row("Memory", "[dim]disabled[/dim]")
         table.add_row("", "")
 
         described = rt.governor.describe()
@@ -325,6 +345,166 @@ def graph(
         for key, value in stats.items():
             table.add_row(key.replace("_", " ").title(), str(value))
         console.print(Panel(table, title="wikilink graph", title_align="left"))
+
+
+@app.command()
+def memory(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    recent: Annotated[int, typer.Option("--recent", help="How many to list.")] = 10,
+) -> None:
+    """List saved memory notes.
+
+    Deliberately read-only. Memory notes are ordinary Markdown in your vault, so
+    editing and deleting them belongs in Obsidian -- a delete command here would
+    be a second, worse file manager.
+    """
+    with _runtime(config, vault, offline) as rt:
+        if rt.memory is None or not rt.memory.enabled:
+            console.print("[yellow]Memory is disabled in config.[/yellow]")
+            raise typer.Exit()
+
+        root = rt.memory.root
+        console.print(f"Memory folder: [cyan]{root}[/cyan]")
+        console.print(f"Notes saved:   {rt.memory.count()}")
+
+        if not root.exists():
+            console.print('[dim]No memory notes yet. Use: cortex ask --remember "..."[/dim]')
+            raise typer.Exit()
+
+        notes = sorted(root.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if notes:
+            console.print()
+            for path in notes[:recent]:
+                uri = obsidian_uri(
+                    path.relative_to(rt.settings.vault_path).as_posix(),
+                    rt.settings.display_vault_name,
+                )
+                console.print(f"  [link={uri}]{path.stem}[/link]")
+
+
+@app.command()
+def bench(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    cases: Annotated[
+        Path | None,
+        typer.Option("--cases", help="Ground-truth YAML/JSON of query -> expected notes."),
+    ] = None,
+    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 10,
+    reindex: Annotated[
+        bool, typer.Option("--reindex", help="Time a full cold index first.")
+    ] = False,
+) -> None:
+    """Measure retrieval quality and indexing throughput on your own vault.
+
+    Every default in Cortex was set from published findings on someone else's
+    corpus. Whether the graph, the reranker and query expansion actually earn
+    their latency on *your* notes is an empirical question, and this answers it.
+    """
+    import time as _time
+
+    from cortex.bench import IndexBenchmark, ablate, load_cases
+
+    with _runtime(config, vault, offline) as rt:
+        if reindex:
+            with console.status("Cold index..."):
+                started = _time.perf_counter()
+                report = rt.pipeline.run(full=True)
+                cold = _time.perf_counter() - started
+                warm_started = _time.perf_counter()
+                rt.pipeline.run()
+                warm = _time.perf_counter() - warm_started
+
+            timing = IndexBenchmark(
+                notes=report.indexed,
+                chunks=report.chunks_written,
+                elapsed_s=cold,
+                reindex_elapsed_s=warm,
+            )
+            table = Table(title="Indexing", show_header=False, box=None, padding=(0, 2))
+            table.add_row("Notes", f"{timing.notes}")
+            table.add_row("Chunks", f"{timing.chunks}")
+            table.add_row("Cold index", f"{timing.elapsed_s:.2f}s")
+            table.add_row("Notes/sec", f"{timing.notes_per_second:.1f}")
+            table.add_row("Chunks/sec", f"{timing.chunks_per_second:.1f}")
+            table.add_row("No-op rescan", f"{timing.reindex_elapsed_s:.3f}s")
+            # Proves the content-hash gate is working. A low figure means
+            # something is defeating it and the vault is being re-embedded.
+            table.add_row("Hash-gate speedup", f"{timing.speedup:.0f}x")
+            console.print(table)
+            console.print()
+        else:
+            rt.pipeline.run()
+
+        rt.refresh_graph()
+        engine = rt.engine()
+
+        if cases is None:
+            console.print(
+                "[yellow]No --cases file given, so quality cannot be measured.[/yellow]\n"
+                "[dim]Write ~20 real questions with the notes that should answer them:\n\n"
+                "  - query: what did I decide about chunking?\n"
+                "    expect: [Chunking Strategy.md]\n[/dim]"
+            )
+            raise typer.Exit()
+
+        loaded = load_cases(cases)
+        if not loaded:
+            err_console.print(f"[red]No usable cases in {cases}[/red]")
+            raise typer.Exit(code=2)
+
+        with console.status(f"Evaluating {len(loaded)} cases..."):
+            result = ablate(engine, loaded, top_k=top_k)
+
+        base = result.baseline
+        summary = Table(title=f"Retrieval quality ({base.cases} cases)")
+        summary.add_column("Metric")
+        summary.add_column("Value", justify="right")
+        for key, value in (
+            ("recall@5", f"{base.recall_at_5:.3f}"),
+            ("recall@10", f"{base.recall_at_10:.3f}"),
+            ("MRR", f"{base.mrr:.3f}"),
+            ("MAP", f"{base.map_score:.3f}"),
+            ("nDCG@10", f"{base.ndcg_at_10:.3f}"),
+            ("p50 latency", f"{base.p50_ms:.0f}ms"),
+            ("p95 latency", f"{base.p95_ms:.0f}ms"),
+        ):
+            summary.add_row(key, value)
+        console.print(summary)
+
+        rows = result.deltas()
+        if rows:
+            ablation = Table(title="Ablation - what each component contributes")
+            ablation.add_column("Disabled")
+            ablation.add_column("recall@5", justify="right")
+            ablation.add_column("Δ recall", justify="right")
+            ablation.add_column("Δ nDCG", justify="right")
+            ablation.add_column("ms saved", justify="right")
+            for row in rows:
+                delta = float(row["recall_delta"])
+                colour = "green" if delta > 0.001 else "red" if delta < -0.001 else "dim"
+                ablation.add_row(
+                    str(row["disabled"]),
+                    f"{row['recall@5']:.3f}",
+                    f"[{colour}]{delta:+.3f}[/{colour}]",
+                    f"{row['ndcg_delta']:+.3f}",
+                    f"{row['p50_saved_ms']:+.0f}",
+                )
+            console.print(ablation)
+            console.print(
+                "[dim]Positive Δ means the component helps: disabling it lost that "
+                "much recall. Negative means it is hurting you -- turn it off.[/dim]"
+            )
+
+        if base.misses:
+            console.print(
+                f"\n[yellow]{len(base.misses)} queries retrieved nothing expected:[/yellow]"
+            )
+            for miss in base.misses[:10]:
+                console.print(f"  [dim]-[/dim] {miss}")
 
 
 @app.command()

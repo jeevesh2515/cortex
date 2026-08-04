@@ -51,6 +51,11 @@ class LinkGraph:
 
     forward: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     backward: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
+    embeds: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
+    """Transclusion edges (``![[note]]``), tracked separately from ordinary
+    links. An embed is a materially stronger claim: the author is saying this
+    content *is part of* the note, not merely that it is worth a look. Treating
+    the two identically discards that signal."""
     _alias: dict[str, str] = field(default_factory=dict)
     """Maps a normalised link target to the note_id that resolves it."""
 
@@ -79,6 +84,8 @@ class LinkGraph:
                     continue
                 graph.forward[note.note_id].add(target)
                 graph.backward[target].add(note.note_id)
+                if link.is_embed:
+                    graph.embeds[note.note_id].add(target)
         return graph
 
     def neighbours(self, note_id: str, *, include_backlinks: bool = True) -> set[str]:
@@ -135,6 +142,7 @@ class LinkGraph:
             "notes": len(self._alias),
             "linked_notes": len(set(self.forward) | set(self.backward)),
             "edges": edges,
+            "embeds": sum(len(targets) for targets in self.embeds.values()),
             "tags": len(self.tags),
         }
 
@@ -147,6 +155,7 @@ def expand_by_links(
     hops: int = 1,
     limit: int = 20,
     decay: float = 0.5,
+    embed_boost: float = 1.6,
 ) -> list[ScoredChunk]:
     """Produce a graph-derived ranking from already-retrieved seeds.
 
@@ -161,11 +170,19 @@ def expand_by_links(
     seed_set = set(seed_notes)
     expanded = graph.expand(seed_notes, hops=hops, limit=limit)
 
+    # Transclusions reachable in one hop from any seed. Only direct embeds earn
+    # the boost -- an embed two hops away is not evidence about *this* query.
+    boosted: set[str] = set()
+    for seed in seed_set:
+        boosted |= graph.embeds.get(seed, set())
+
     scored: list[ScoredChunk] = []
     for note_id, distance in expanded.items():
         if note_id in seed_set:
             continue
         weight = decay**distance
+        if note_id in boosted:
+            weight *= embed_boost
         for chunk in chunks_by_note.get(note_id, [])[:2]:
             # Cap at two chunks per neighbour so one long note cannot flood the
             # candidate pool.
@@ -174,7 +191,10 @@ def expand_by_links(
                     chunk=chunk,
                     score=weight,
                     source="graph",
-                    components={"hop_distance": float(distance)},
+                    components={
+                        "hop_distance": float(distance),
+                        "embed": 1.0 if note_id in boosted else 0.0,
+                    },
                 )
             )
 

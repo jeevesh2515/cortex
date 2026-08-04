@@ -15,10 +15,11 @@ Use the venv's interpreter directly rather than a shell wrapper -- the MCP
 client launches the process without a login shell, so anything relying on PATH
 or shell activation will not be found.
 
-Design note: the tools returned here are read-only over the vault plus an
-explicit ``reindex``. Nothing mutates a note. An agent that can silently
-rewrite your second brain is a liability, and Antigravity already has file
-tools if you genuinely want it editing notes.
+Design note on write access: every tool here is read-only over the vault except
+``reindex`` and ``remember``. ``remember`` only ever *creates* a new file inside
+the memory folder -- it cannot edit or delete an existing note. An agent that
+could silently rewrite your second brain is a liability, and Antigravity already
+has general file tools if you genuinely want it editing notes.
 """
 
 from __future__ import annotations
@@ -106,6 +107,41 @@ TOOL_DEFINITIONS = [
             "to receive private content."
         ),
         "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "remember",
+        "description": (
+            "Save a short memory note into the user's vault so this exchange is "
+            "recalled in future sessions. The note is plain Markdown in the Memory "
+            "folder, wikilinked to the notes it drew on, so the user can read, edit "
+            "or delete it in Obsidian. Use this when the user states a durable "
+            "preference, a decision, or a conclusion worth keeping -- not for "
+            "every passing question."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string",
+                    "description": "What was asked or the topic being recorded.",
+                },
+                "answer": {
+                    "type": "string",
+                    "description": "The conclusion, decision or preference to remember.",
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Vault-relative note ids this drew on; becomes wikilinks.",
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Extra tags beyond cortex/memory.",
+                },
+            },
+            "required": ["question", "answer"],
+        },
     },
     {
         "name": "reindex",
@@ -244,12 +280,61 @@ class CortexTools:
             "errors": [{"note": n, "error": e} for n, e in report.errors[:20]],
         }
 
+    def remember(
+        self,
+        question: str,
+        answer: str,
+        sources: list[str] | None = None,
+        tags: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Write a memory note into the vault.
+
+        The only tool in this server that mutates the vault, and it only ever
+        creates a new file inside the memory folder -- never edits or deletes an
+        existing note.
+        """
+        if self.rt.memory is None or not self.rt.memory.enabled:
+            return {
+                "error": "memory_disabled",
+                "message": "Memory is disabled. Enable it under [memory] in cortex.toml.",
+            }
+        from cortex.memory import MemoryNote
+
+        try:
+            written = self.rt.memory.write(
+                MemoryNote(
+                    question=question,
+                    answer=answer,
+                    sources=list(sources or []),
+                    tags=list(tags or []),
+                    provider="mcp",
+                )
+            )
+        except (OSError, ValueError) as exc:
+            return {"error": "write_failed", "message": str(exc)}
+
+        if written is None:
+            return {"error": "not_written", "message": "Nothing to save."}
+        return {
+            "saved": written.relative_to(self.rt.settings.vault_path).as_posix(),
+            "obsidian_uri": obsidian_uri(
+                written.relative_to(self.rt.settings.vault_path).as_posix(),
+                self.rt.settings.display_vault_name,
+            ),
+            "total_memory_notes": self.rt.memory.count(),
+            "note": (
+                "Indexed on the next reindex, after which it participates in "
+                "retrieval like any other note."
+            ),
+        }
+
     def dispatch(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         handlers: dict[str, Callable[..., dict[str, Any]]] = {
             "search_notes": self.search_notes,
             "ask_notes": self.ask_notes,
             "list_links": self.list_links,
             "vault_status": self.vault_status,
+            "remember": self.remember,
             "reindex": self.reindex,
         }
         handler = handlers.get(name)

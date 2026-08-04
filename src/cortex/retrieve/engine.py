@@ -26,7 +26,9 @@ from dataclasses import dataclass, field
 from cortex.index.store import MemoryStore, VectorStore
 from cortex.llm.protocol import ChatMessage, EmbeddingProvider, RerankProvider
 from cortex.llm.router import Router
+from cortex.memory import cap_memory_results
 from cortex.models import Answer, Chunk, ScoredChunk, Sensitivity
+from cortex.retrieve.expansion import expand_query
 from cortex.retrieve.fusion import reciprocal_rank_fusion
 from cortex.retrieve.graph import LinkGraph, expand_by_links
 from cortex.temporal import DateRange, parse_date_range
@@ -91,6 +93,8 @@ class RetrievalEngine:
         temporal_enabled: bool = True,
         temporal_overfetch: int = 8,
         coverage_limit: int = 200,
+        memory_max_results: int = 2,
+        expansion_enabled: bool = True,
     ) -> None:
         self.store = store
         self.embedder = embedder
@@ -111,7 +115,15 @@ class RetrievalEngine:
         # wider going in or the window comes back empty despite having content.
         self.temporal_overfetch = temporal_overfetch
         self.coverage_limit = coverage_limit
-        self.fusion_weights = fusion_weights or {"dense": 1.0, "fts": 0.8, "graph": 0.5}
+        # Memory notes summarise primary notes, so they compete with their own
+        # sources. Uncapped, they would slowly displace the real content and
+        # answers would drift towards summarising previous answers.
+        self.memory_max_results = memory_max_results
+        self.expansion_enabled = expansion_enabled
+        # Copied, not aliased. `retrieve` adds weights for expansion variants,
+        # and Runtime.engine() passes the same Settings dict on every call -- so
+        # sharing it would accumulate `fts:1`, `fts:2` ... into global config.
+        self.fusion_weights = dict(fusion_weights or {"dense": 1.0, "fts": 0.8, "graph": 0.5})
 
     def retrieve(
         self,
@@ -146,7 +158,22 @@ class RetrievalEngine:
         except Exception as exc:
             logger.warning("dense retrieval unavailable, continuing with BM25: %s", exc)
 
-        rankings["fts"] = self.store.search_text(query, top_k=fts_k, sensitivity=sensitivity)
+        # Lexical retrieval over several phrasings. A question is mostly
+        # stopwords, so searching the raw text alone dilutes BM25; a
+        # salient-terms-only variant is far tighter. Each variant becomes its own
+        # ranking so RRF can reward documents that satisfy more than one.
+        expanded = expand_query(query) if self.expansion_enabled else None
+        if expanded is not None and expanded.has_signal:
+            for index, variant in enumerate(expanded.lexical_variants()):
+                hits = self.store.search_text(variant, top_k=fts_k, sensitivity=sensitivity)
+                if hits:
+                    # `fts` keeps the configured weight; extra variants are named
+                    # so their contribution stays visible in `components`.
+                    name = "fts" if index == 0 else f"fts:{index}"
+                    rankings[name] = hits
+                    self.fusion_weights.setdefault(name, self.fusion_weights.get("fts", 0.8) * 0.6)
+        else:
+            rankings["fts"] = self.store.search_text(query, top_k=fts_k, sensitivity=sensitivity)
 
         # Graph expansion seeds from what the other retrievers already found,
         # so it needs them first.
@@ -210,6 +237,8 @@ class RetrievalEngine:
                 did_rerank = True
             except Exception as exc:
                 logger.warning("reranking failed, using fused order: %s", exc)
+
+        fused = cap_memory_results(fused, limit=self.memory_max_results)
 
         if window is not None:
             in_window = [s for s in fused if window.contains(s.chunk.note_date)]

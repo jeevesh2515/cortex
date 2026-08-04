@@ -114,9 +114,29 @@ class Settings:
     """Seconds of inactivity before the reranker releases its weights. Matters
     on 16 GB: embedder + reranker + chat model do not co-reside comfortably."""
 
+    expansion_enabled: bool = True
+    """Extract salient terms and run extra lexical variants. A question is
+    mostly stopwords, which dilutes BM25."""
+
+    ingest_documents: bool = False
+    """Also index PDFs, HTML clippings, EPUBs and text files. Off by default:
+    extraction needs an optional dependency and a vault of attachments can be
+    far larger than its markdown."""
+
     temporal_enabled: bool = True
     """Resolve date expressions in queries and return full coverage of the
     window rather than the top k."""
+
+    memory_enabled: bool = True
+    memory_folder: str = "Memory"
+    memory_auto: bool = False
+    """Write a memory note after every ``ask``. Off by default: automatic
+    capture on every question would fill the vault with noise, so it is opt-in
+    per query via ``--remember`` until you decide you want all of them."""
+
+    memory_max_results: int = 2
+    """Ceiling on memory notes per result set. Memory summarises primary notes,
+    so uncapped it would gradually displace the sources it came from."""
 
     top_k: int = 8
     dense_k: int = 30
@@ -246,6 +266,8 @@ def load_settings(
             settings.data_dir = _coerce_path(data["data_dir"])
         if "local_only" in data:
             settings.local_only = bool(data["local_only"])
+        if "ingest_documents" in data:
+            settings.ingest_documents = bool(data["ingest_documents"])
         if isinstance(data.get("exclude_globs"), list):
             settings.exclude_globs = [str(g) for g in data["exclude_globs"]]
 
@@ -266,6 +288,12 @@ def load_settings(
             weights = retrieval.get("fusion_weights")
             if isinstance(weights, dict):
                 settings.fusion_weights = {str(k): float(v) for k, v in weights.items()}
+
+        mem = data.get("memory", {})
+        if isinstance(mem, dict):
+            settings.memory_enabled = bool(mem.get("enabled", settings.memory_enabled))
+            settings.memory_folder = str(mem.get("folder", settings.memory_folder))
+            settings.memory_auto = bool(mem.get("auto", settings.memory_auto))
 
         chunking = data.get("chunking", {})
         if isinstance(chunking, dict):

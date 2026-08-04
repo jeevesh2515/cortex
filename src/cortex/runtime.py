@@ -18,6 +18,7 @@ from cortex.ingest.pipeline import IndexPipeline
 from cortex.llm.protocol import EmbeddingProvider, RerankProvider
 from cortex.llm.providers import HashEmbedder, OllamaEmbedder, build_chat_providers
 from cortex.llm.router import Router
+from cortex.memory import MemoryWriter
 from cortex.retrieve.engine import RetrievalEngine
 from cortex.retrieve.graph import LinkGraph
 from cortex.retrieve.rerank import build_reranker
@@ -41,6 +42,7 @@ class Runtime:
     pipeline: IndexPipeline
     graph: LinkGraph | None = None
     reranker: RerankProvider | None = None
+    memory: MemoryWriter | None = None
 
     def engine(self) -> RetrievalEngine:
         return RetrievalEngine(
@@ -56,6 +58,8 @@ class Runtime:
             fusion_weights=self.settings.fusion_weights,
             rerank_candidates=self.settings.rerank_candidates,
             temporal_enabled=self.settings.temporal_enabled,
+            memory_max_results=self.settings.memory_max_results,
+            expansion_enabled=self.settings.expansion_enabled,
         )
 
     def refresh_graph(self) -> LinkGraph:
@@ -141,6 +145,13 @@ def build_runtime(
         chunk_config=settings.chunk,
         governor=governor,
         exclude=settings.exclude_globs,
+        documents=settings.ingest_documents,
+    )
+
+    memory = MemoryWriter(
+        settings.vault_path,
+        folder=settings.memory_folder,
+        enabled=settings.memory_enabled,
     )
 
     return Runtime(
@@ -152,4 +163,5 @@ def build_runtime(
         router=router,
         pipeline=pipeline,
         reranker=reranker,
+        memory=memory,
     )

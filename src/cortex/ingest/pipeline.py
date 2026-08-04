@@ -25,7 +25,8 @@ from pathlib import Path
 from cortex.catalog import Catalog, ChangeSet
 from cortex.index.store import StoredChunk, VectorStore
 from cortex.ingest.chunker import ChunkConfig, chunk_note
-from cortex.ingest.obsidian import parse_note
+from cortex.ingest.obsidian import parse_note, parse_text
+from cortex.ingest.parsers import extract_document, supported_suffixes
 from cortex.llm.protocol import EmbeddingProvider
 from cortex.models import Chunk, Note, content_hash
 from cortex.retrieve.graph import LinkGraph
@@ -68,7 +69,9 @@ class IndexReport:
         return ", ".join(parts)
 
 
-def scan_vault(vault: Path, *, exclude: Sequence[str] = ()) -> Iterator[Path]:
+def scan_vault(
+    vault: Path, *, exclude: Sequence[str] = (), documents: bool = False
+) -> Iterator[Path]:
     """Yield markdown files, skipping excluded paths.
 
     ``.obsidian`` in particular must be excluded: it holds the app's own JSON
@@ -76,8 +79,11 @@ def scan_vault(vault: Path, *, exclude: Sequence[str] = ()) -> Iterator[Path]:
     """
     if not vault.exists():
         return
+    wanted = set(MARKDOWN_SUFFIXES)
+    if documents:
+        wanted |= supported_suffixes()
     for path in sorted(vault.rglob("*")):
-        if not path.is_file() or path.suffix.lower() not in MARKDOWN_SUFFIXES:
+        if not path.is_file() or path.suffix.lower() not in wanted:
             continue
         try:
             rel = path.relative_to(vault).as_posix()
@@ -104,6 +110,7 @@ class IndexPipeline:
         governor: ThermalGovernor | None = None,
         exclude: Sequence[str] = (),
         batch_size: int = 32,
+        documents: bool = False,
     ) -> None:
         self.vault = Path(vault)
         self.store = store
@@ -113,6 +120,7 @@ class IndexPipeline:
         self.governor = governor
         self.exclude = list(exclude)
         self.batch_size = batch_size
+        self.documents = documents
         self._notes: dict[str, Note] = {}
 
     # --- scanning ----------------------------------------------------------
@@ -126,7 +134,7 @@ class IndexPipeline:
         trying to avoid.
         """
         observed: dict[str, tuple[Path, str]] = {}
-        for path in scan_vault(self.vault, exclude=self.exclude):
+        for path in scan_vault(self.vault, exclude=self.exclude, documents=self.documents):
             try:
                 digest = content_hash(path.read_bytes())
             except OSError as exc:
@@ -151,9 +159,18 @@ class IndexPipeline:
         paired = zip(chunks, vectors, strict=True)
         return [StoredChunk(chunk=chunk, vector=vec) for chunk, vec in paired]
 
-    def index_note(self, path: Path, digest: str) -> tuple[int, int]:
-        """Index one note. Returns ``(chunks_written, chunks_removed)``."""
-        note = parse_note(path, vault_root=self.vault)
+    def index_note(self, path: Path, digest: str) -> tuple[int, int] | None:
+        """Index one note.
+
+        Returns ``(chunks_written, chunks_removed)``, or ``None`` when the file
+        yielded nothing indexable -- an image-only PDF, an empty HTML clipping.
+        ``None`` is distinct from ``(0, 0)``: the latter means a real note whose
+        chunks were replaced, and counting a skip as "indexed" made the report
+        claim work that never happened.
+        """
+        note = self._parse_any(path)
+        if note is None:
+            return None
         self._notes[note.note_id] = note
         chunks = chunk_note(note, self.chunk_config)
 
@@ -180,6 +197,42 @@ class IndexPipeline:
         )
         removed = self.store.delete(stale) if stale else 0
         return written, removed
+
+    def _parse_any(self, path: Path) -> Note | None:
+        """Parse a vault file, converting non-markdown formats to markdown first.
+
+        A PDF becomes markdown and then follows the identical path as a
+        hand-written note -- same chunker, same linking, same citations. The rest
+        of the system never learns that some notes were not markdown.
+        """
+        if path.suffix.lower() in MARKDOWN_SUFFIXES:
+            return parse_note(path, vault_root=self.vault)
+
+        extracted = extract_document(path)
+        if extracted is None:
+            return None
+        if extracted.warning:
+            logger.info("%s: %s", path.name, extracted.warning)
+        if extracted.is_empty:
+            return None
+
+        try:
+            rel = path.resolve().relative_to(self.vault.resolve()).as_posix()
+        except ValueError:
+            rel = path.name
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            mtime = 0.0
+
+        title = extracted.title or path.stem
+        # Synthesise frontmatter so the note carries its provenance and is
+        # distinguishable from hand-written content in search results.
+        body = (
+            f"---\ntitle: {title!r}\nsource_format: {extracted.kind}\n"
+            f"tags:\n  - cortex/imported\n---\n\n# {title}\n\n{extracted.text}"
+        )
+        return parse_text(body, rel_path=rel, path=path, mtime=mtime)
 
     def run(
         self,
@@ -212,12 +265,16 @@ class IndexPipeline:
 
             path, digest = observed[note_id]
             try:
-                written, removed = self.index_note(path, digest)
+                outcome = self.index_note(path, digest)
             except Exception as exc:
                 logger.warning("failed to index %s: %s", note_id, exc)
                 report.errors.append((note_id, str(exc)))
                 continue
 
+            if outcome is None:
+                report.skipped += 1
+                continue
+            written, removed = outcome
             report.indexed += 1
             report.chunks_written += written
             report.chunks_removed += removed
@@ -250,9 +307,11 @@ class IndexPipeline:
         this is a few hundred milliseconds on a large vault.
         """
         notes: list[Note] = []
-        for path in scan_vault(self.vault, exclude=self.exclude):
+        for path in scan_vault(self.vault, exclude=self.exclude, documents=self.documents):
             try:
-                notes.append(parse_note(path, vault_root=self.vault))
+                parsed = self._parse_any(path)
+                if parsed is not None:
+                    notes.append(parsed)
             except OSError as exc:
                 logger.debug("skipping %s while building graph: %s", path, exc)
         self._notes = {note.note_id: note for note in notes}

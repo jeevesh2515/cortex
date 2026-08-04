@@ -199,6 +199,58 @@ Sources:
   [1] daily/2026-07-14.md > Standup      ← opens in Obsidian
 ```
 
+### It remembers
+
+Ask with `--remember` and Cortex writes the exchange as a Markdown note in
+`Memory/`, wikilinked to the notes it drew on:
+
+```bash
+cortex ask --remember "what chunk size did I settle on?"
+cortex memory                     # list what it has kept
+```
+
+Because it's an ordinary note, it shows up in Obsidian's graph view, you can
+edit or delete it, and it participates in future retrieval automatically — no
+second database, nothing hidden.
+
+There's a trap here worth knowing about. Memory notes *summarise* your primary
+notes, so they compete with their own sources. Left uncapped they slowly
+displace the real content and answers drift towards summarising previous
+answers — more confident each round, less grounded. `memory_max_results`
+(default 2) caps how much memory can occupy any result set.
+
+### PDFs and web clippings
+
+```toml
+ingest_documents = true   # needs: pip install 'cortex-brain[documents]'
+```
+
+PDFs, EPUBs, saved HTML and `.txt` become markdown and then follow the identical
+path as a hand-written note — same chunker, same citations. Neither PDF backend
+does OCR, so a scanned PDF says so explicitly rather than quietly indexing
+nothing.
+
+### Measure instead of guessing
+
+Every default here came from published findings on someone else's corpus.
+Whether the graph or the reranker earns its latency on *your* vault is an
+empirical question:
+
+```bash
+cortex bench --cases my-questions.yaml --reindex
+```
+
+```yaml
+# my-questions.yaml — ~20 questions you actually asked
+- query: what did I decide about chunking?
+  expect: [Chunking Strategy.md]
+```
+
+You get recall@5/10, MRR, MAP, nDCG@10 and p50/p95 latency — then an **ablation
+table** showing what each component contributes. A negative delta means that
+component is hurting you and should be off. The project should make it easy to
+reach that conclusion about its own features.
+
 ### Reranking
 
 Reranking is the single highest-leverage addition to hybrid retrieval — roughly
@@ -261,7 +313,7 @@ uv pip install -e ".[dev,all]"
 make check      # ruff + mypy --strict + pytest
 ```
 
-361 tests, mypy strict, zero lint warnings. The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one.
+465 tests, mypy strict, zero lint warnings. The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one.
 
 Architecture decisions and their tradeoffs are recorded in [`docs/adr/`](docs/adr/).
 

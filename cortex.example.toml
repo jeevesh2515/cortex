@@ -30,7 +30,23 @@ rerank_model = "bge-reranker-v2-m3"   # or "minilm" -- 4x faster, lower ceiling
 rerank_candidates = 30
 rerank_idle_ttl = 600.0        # release reranker weights after 10 min idle
 temporal_enabled = true        # resolve "last week" and return full coverage
+expansion_enabled = true       # strip filler words, run extra lexical variants
+memory_max_results = 2         # cap memory notes per result set (see below)
 fusion_weights = { dense = 1.0, fts = 0.8, graph = 0.5 }
+
+# Also index PDFs, HTML clippings, EPUBs and .txt files.
+# Needs: pip install 'cortex-brain[documents]'
+ingest_documents = false
+
+[memory]
+# Cortex writes session notes as plain Markdown into your vault, wikilinked to
+# the notes they drew on -- so memory shows up in graph view and you can edit or
+# delete it in Obsidian like anything else.
+enabled = true
+folder = "Memory"
+# Write a note after every `ask`. Off by default: capturing every passing
+# question fills the vault with noise. Use `cortex ask --remember` instead.
+auto = false
 
 [chunking]
 target_tokens = 512      # 2026 consensus; semantic chunking underperforms this
