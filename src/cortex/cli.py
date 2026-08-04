@@ -1,0 +1,350 @@
+"""Command-line interface.
+
+cortex index          incremental index of the vault
+cortex ask "..."      grounded answer with citations
+cortex search "..."   raw retrieval, no synthesis
+cortex status         index, thermal and routing state
+cortex providers      which providers may see private content, and why
+cortex graph          wikilink graph statistics
+cortex watch          run the incremental indexer continuously
+cortex serve-mcp      MCP stdio server for Antigravity
+"""
+
+from __future__ import annotations
+
+import logging
+import sys
+from pathlib import Path
+from typing import Annotated
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from cortex import __version__
+from cortex.llm.protocol import PolicyViolation, ProviderError
+from cortex.models import Sensitivity
+from cortex.runtime import build_runtime
+
+app = typer.Typer(
+    name="cortex",
+    help="Local-first second brain for Obsidian.",
+    no_args_is_help=True,
+    add_completion=False,
+)
+console = Console()
+err_console = Console(stderr=True)
+
+ConfigOpt = Annotated[Path | None, typer.Option("--config", "-c", help="Path to cortex.toml.")]
+VaultOpt = Annotated[Path | None, typer.Option("--vault", "-v", help="Override the vault path.")]
+OfflineOpt = Annotated[
+    bool,
+    typer.Option("--offline", help="Use the deterministic hashing embedder (no model needed)."),
+]
+
+
+def _setup_logging(verbose: bool) -> None:
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.WARNING,
+        format="%(levelname)s %(name)s: %(message)s",
+        stream=sys.stderr,
+    )
+
+
+def _runtime(config: Path | None, vault: Path | None, offline: bool):  # type: ignore[no-untyped-def]
+    from cortex.config import load_settings
+
+    settings = load_settings(config)
+    if vault is not None:
+        settings.vault_path = vault.expanduser()
+    if not settings.vault_path.exists():
+        err_console.print(
+            f"[red]Vault not found:[/red] {settings.vault_path}\n"
+            "Set it with --vault, or in cortex.toml, or via CORTEX_VAULT."
+        )
+        raise typer.Exit(code=2)
+    return build_runtime(settings=settings, offline=offline)
+
+
+@app.command()
+def version() -> None:
+    """Print the version."""
+    console.print(f"cortex {__version__}")
+
+
+@app.command()
+def index(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    full: Annotated[bool, typer.Option("--full", help="Rebuild from scratch.")] = False,
+    ignore_thermal: Annotated[
+        bool, typer.Option("--ignore-thermal", help="Index at full speed regardless of heat.")
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Index the vault incrementally."""
+    _setup_logging(verbose)
+    with _runtime(config, vault, offline) as rt:
+        console.print(f"Vault: [cyan]{rt.settings.vault_path}[/cyan]")
+        rt.governor.sample(force=True)
+        console.print(f"Thermal: [yellow]{rt.governor.state.value}[/yellow]")
+
+        with console.status("Indexing..."):
+            report = rt.pipeline.run(full=full, respect_thermal=not ignore_thermal)
+
+        console.print(f"[green]{report.summary()}[/green]")
+        if report.paused_for_thermal:
+            console.print(
+                "[yellow]Backfill paused to let the machine cool. "
+                "Re-run later, or pass --ignore-thermal.[/yellow]"
+            )
+        for note_id, error in report.errors[:10]:
+            err_console.print(f"[red]error[/red] {note_id}: {error}")
+
+        graph = rt.refresh_graph()
+        stats = graph.stats
+        console.print(f"Link graph: {stats['edges']} edges across {stats['linked_notes']} notes")
+
+
+@app.command()
+def search(
+    query: Annotated[str, typer.Argument(help="What to look for.")],
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 8,
+    no_graph: Annotated[bool, typer.Option("--no-graph")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Retrieve matching notes without synthesising an answer."""
+    _setup_logging(verbose)
+    with _runtime(config, vault, offline) as rt:
+        rt.refresh_graph()
+        result = rt.engine().retrieve(query, top_k=top_k, use_graph=not no_graph)
+
+        if not result.chunks:
+            console.print("[yellow]No matches.[/yellow]")
+            raise typer.Exit()
+
+        console.print(
+            f"[dim]{result.elapsed_ms:.0f}ms - "
+            + ", ".join(f"{k}:{v}" for k, v in result.per_retriever.items())
+            + "[/dim]\n"
+        )
+        for i, scored in enumerate(result.chunks, start=1):
+            snippet = scored.chunk.text.strip().replace("\n", " ")
+            if len(snippet) > 240:
+                snippet = snippet[:240] + "..."
+            via = "+".join(sorted(scored.components)) or scored.source
+            console.print(
+                Panel(
+                    snippet,
+                    title=f"[{i}] {scored.chunk.citation}",
+                    subtitle=f"[dim]{via} - {scored.score:.4f}[/dim]",
+                    title_align="left",
+                    subtitle_align="right",
+                )
+            )
+
+
+@app.command()
+def ask(
+    question: Annotated[str, typer.Argument(help="Your question.")],
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 8,
+    local_only: Annotated[
+        bool, typer.Option("--local-only", help="Never leave this machine.")
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Answer a question from your notes, with citations."""
+    _setup_logging(verbose)
+    with _runtime(config, vault, offline) as rt:
+        rt.refresh_graph()
+        engine = rt.engine()
+        try:
+            with console.status("Thinking..."):
+                answer = engine.ask(
+                    question,
+                    top_k=top_k,
+                    local_only=local_only or rt.settings.local_only,
+                )
+        except PolicyViolation as exc:
+            err_console.print(
+                Panel(
+                    f"{exc}\n\n[dim]Cortex refused rather than sending private notes to a "
+                    "provider that trains on submitted data. Run 'cortex providers' to see "
+                    "the policy for each configured provider.[/dim]",
+                    title="[red]Refused on privacy grounds[/red]",
+                    title_align="left",
+                )
+            )
+            raise typer.Exit(code=3) from exc
+        except ProviderError as exc:
+            err_console.print(f"[red]All providers failed:[/red] {exc}")
+            raise typer.Exit(code=4) from exc
+
+        console.print()
+        console.print(answer.text)
+        console.print()
+
+        if answer.citations:
+            console.print("[dim]Sources:[/dim]")
+            for i, chunk in enumerate(answer.citations, start=1):
+                console.print(f"  [dim][{i}][/dim] {chunk.citation}")
+
+        marker = "[yellow]escalated[/yellow]" if answer.escalated else "[green]local[/green]"
+        console.print(f"\n[dim]{answer.provider} ({marker}) - {answer.elapsed_ms:.0f}ms[/dim]")
+
+
+@app.command()
+def status(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+) -> None:
+    """Show index, thermal and configuration state."""
+    with _runtime(config, vault, offline) as rt:
+        rt.governor.sample(force=True)
+        counts = rt.catalog.stats()
+
+        table = Table(show_header=False, box=None, padding=(0, 2))
+        table.add_row("Vault", str(rt.settings.vault_path))
+        table.add_row("Data", str(rt.settings.data_dir))
+        table.add_row("Notes indexed", str(counts["notes"]))
+        table.add_row("Chunks", str(counts["chunks"]))
+        table.add_row("Store", type(rt.store).__name__)
+        table.add_row("Embedder", f"{rt.settings.embed_model} ({type(rt.embedder).__name__})")
+        table.add_row("", "")
+
+        described = rt.governor.describe()
+        state = str(described["state"])
+        colour = {"boost": "green", "nominal": "cyan", "throttled": "yellow"}.get(state, "red")
+        table.add_row("Thermal", f"[{colour}]{state}[/{colour}]")
+        table.add_row("Power", str(described["power"]))
+        if described["cpu_speed_limit"] is not None:
+            table.add_row("CPU speed limit", f"{described['cpu_speed_limit']}%")
+        if described["battery_percent"] is not None:
+            table.add_row("Battery", f"{described['battery_percent']}%")
+        table.add_row("Index workers", str(described["workers"]))
+        table.add_row("Backfill allowed", "yes" if described["may_backfill"] else "no")
+
+        console.print(Panel(table, title="cortex status", title_align="left"))
+
+
+@app.command()
+def providers(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+) -> None:
+    """Show which providers may see private content, and why."""
+    with _runtime(config, vault, offline) as rt:
+        explained = rt.router.explain(Sensitivity.PRIVATE)
+
+        table = Table(title="Provider routing for PRIVATE content")
+        table.add_column("Provider")
+        table.add_column("Model", overflow="fold")
+        table.add_column("Policy")
+        table.add_column("Status")
+
+        for provider in rt.router.providers:
+            spec = provider.spec
+            verdict = explained.get(spec.name, "unknown")
+            colour = "green" if verdict.startswith("eligible") else "red"
+            table.add_row(
+                spec.name,
+                spec.model,
+                spec.policy.value,
+                f"[{colour}]{verdict}[/{colour}]",
+            )
+
+        console.print(table)
+
+        configured = {p.spec.name for p in rt.router.providers}
+        missing = [s for s in rt.settings.providers if s.name not in configured and s.api_key_env]
+        if missing:
+            console.print("\n[dim]Not configured (API key not set):[/dim]")
+            for spec in missing:
+                console.print(f"  {spec.name} - set [cyan]{spec.api_key_env}[/cyan]")
+
+
+@app.command()
+def graph(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    note: Annotated[str | None, typer.Option("--note", help="Show links for one note.")] = None,
+) -> None:
+    """Inspect the wikilink graph."""
+    with _runtime(config, vault, offline) as rt:
+        link_graph = rt.refresh_graph()
+
+        if note:
+            forward = sorted(link_graph.forward.get(note, set()))
+            backward = sorted(link_graph.backward.get(note, set()))
+            if not forward and not backward:
+                console.print(f"[yellow]No links found for {note}[/yellow]")
+                raise typer.Exit()
+            console.print(f"[bold]{note}[/bold]")
+            for target in forward:
+                console.print(f"  -> {target}")
+            for source in backward:
+                console.print(f"  <- {source}")
+            raise typer.Exit()
+
+        stats = link_graph.stats
+        table = Table(show_header=False, box=None, padding=(0, 2))
+        for key, value in stats.items():
+            table.add_row(key.replace("_", " ").title(), str(value))
+        console.print(Panel(table, title="wikilink graph", title_align="left"))
+
+
+@app.command()
+def watch(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    interval: Annotated[float, typer.Option("--interval", help="Seconds between rescans.")] = 30.0,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Continuously index the vault as it changes."""
+    _setup_logging(verbose)
+    import time
+
+    with _runtime(config, vault, offline) as rt:
+        console.print(f"Watching [cyan]{rt.settings.vault_path}[/cyan] (Ctrl-C to stop)")
+        try:
+            while True:
+                rt.governor.sample()
+                report = rt.pipeline.run()
+                if report.indexed or report.deleted:
+                    console.print(f"[dim]{report.summary()}[/dim]")
+                    rt.refresh_graph()
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            console.print("\nStopped.")
+
+
+@app.command("serve-mcp")
+def serve_mcp(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+) -> None:
+    """Run the MCP stdio server (for Antigravity and other MCP clients)."""
+    from cortex.mcp_server import run_stdio
+
+    run_stdio(config_path=config, vault=vault, offline=offline)
+
+
+def main() -> None:
+    app()
+
+
+if __name__ == "__main__":
+    main()
