@@ -29,6 +29,7 @@ from cortex.llm.router import Router
 from cortex.models import Answer, Chunk, ScoredChunk, Sensitivity
 from cortex.retrieve.fusion import reciprocal_rank_fusion
 from cortex.retrieve.graph import LinkGraph, expand_by_links
+from cortex.temporal import DateRange, parse_date_range
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,12 @@ class RetrievalResult:
     per_retriever: dict[str, int] = field(default_factory=dict)
     reranked: bool = False
     elapsed_ms: float = 0.0
+    date_range: DateRange | None = None
+    """Set when the query carried a date constraint. Surfaced so the user can
+    see how "last week" was interpreted rather than having to guess."""
+
+    truncated: bool = True
+    """False for temporal queries, which return full coverage of the window."""
 
     @property
     def notes(self) -> list[str]:
@@ -81,6 +88,9 @@ class RetrievalEngine:
         graph_seeds: int = 3,
         fusion_weights: dict[str, float] | None = None,
         rerank_candidates: int = 30,
+        temporal_enabled: bool = True,
+        temporal_overfetch: int = 8,
+        coverage_limit: int = 200,
     ) -> None:
         self.store = store
         self.embedder = embedder
@@ -96,6 +106,11 @@ class RetrievalEngine:
         # the graph would have reached, and the signal degenerates to noise.
         self.graph_seeds = graph_seeds
         self.rerank_candidates = rerank_candidates
+        self.temporal_enabled = temporal_enabled
+        # A dated query filters most candidates away, so the pool has to be much
+        # wider going in or the window comes back empty despite having content.
+        self.temporal_overfetch = temporal_overfetch
+        self.coverage_limit = coverage_limit
         self.fusion_weights = fusion_weights or {"dense": 1.0, "fts": 0.8, "graph": 0.5}
 
     def retrieve(
@@ -112,16 +127,26 @@ class RetrievalEngine:
         limit = top_k or self.top_k
         rankings: dict[str, Sequence[ScoredChunk]] = {}
 
+        # A date constraint changes the shape of the whole query. "What did I do
+        # last week" wants *coverage* of a window, not the k best-matching
+        # passages -- a truncated answer to that question is confidently
+        # incomplete, which is worse than a slow one. So we widen the candidate
+        # pool well beyond the usual k, then filter, then return everything that
+        # survives.
+        window = parse_date_range(query) if self.temporal_enabled else None
+        dense_k = self.dense_k * self.temporal_overfetch if window else self.dense_k
+        fts_k = self.fts_k * self.temporal_overfetch if window else self.fts_k
+
         try:
             vectors = self.embedder.embed([query], is_query=True)
             if vectors:
                 rankings["dense"] = self.store.search_dense(
-                    vectors[0], top_k=self.dense_k, sensitivity=sensitivity
+                    vectors[0], top_k=dense_k, sensitivity=sensitivity
                 )
         except Exception as exc:
             logger.warning("dense retrieval unavailable, continuing with BM25: %s", exc)
 
-        rankings["fts"] = self.store.search_text(query, top_k=self.fts_k, sensitivity=sensitivity)
+        rankings["fts"] = self.store.search_text(query, top_k=fts_k, sensitivity=sensitivity)
 
         # Graph expansion seeds from what the other retrievers already found,
         # so it needs them first.
@@ -151,11 +176,18 @@ class RetrievalEngine:
                     rankings["graph"] = graph_hits
 
         per_retriever = {name: len(results) for name, results in rankings.items()}
-        fused = reciprocal_rank_fusion(
-            rankings,
-            weights=self.fusion_weights,
-            top_k=max(limit, self.rerank_candidates if rerank and self.reranker else limit),
-        )
+
+        # Fusion must not truncate below what later stages still need. The date
+        # filter runs *after* fusion, so capping at `limit` here would cap
+        # coverage at `limit` however much of the window matched -- precisely the
+        # incomplete-answer failure the temporal path exists to prevent.
+        fusion_limit = limit
+        if rerank and self.reranker is not None:
+            fusion_limit = max(fusion_limit, self.rerank_candidates)
+        if window is not None:
+            fusion_limit = max(fusion_limit, self.coverage_limit)
+
+        fused = reciprocal_rank_fusion(rankings, weights=self.fusion_weights, top_k=fusion_limit)
 
         did_rerank = False
         if rerank and self.reranker is not None and fused:
@@ -179,12 +211,34 @@ class RetrievalEngine:
             except Exception as exc:
                 logger.warning("reranking failed, using fused order: %s", exc)
 
+        if window is not None:
+            in_window = [s for s in fused if window.contains(s.chunk.note_date)]
+            if in_window:
+                # Coverage, not top-k. Capped only to avoid an unbounded context.
+                for position, item in enumerate(in_window[: self.coverage_limit], start=1):
+                    item.rank = position
+                return RetrievalResult(
+                    query=query,
+                    chunks=in_window[: self.coverage_limit],
+                    per_retriever=per_retriever,
+                    reranked=did_rerank,
+                    elapsed_ms=(time.monotonic() - started) * 1000,
+                    date_range=window,
+                    truncated=False,
+                )
+            # Nothing is dated in that window. Falling back to the unfiltered
+            # ranking beats returning nothing, but the caller is told the window
+            # was understood so it can say "no notes from last week" rather than
+            # silently answering a different question.
+            logger.info("no notes dated within %s; returning undated matches", window)
+
         return RetrievalResult(
             query=query,
             chunks=fused[:limit],
             per_retriever=per_retriever,
             reranked=did_rerank,
             elapsed_ms=(time.monotonic() - started) * 1000,
+            date_range=window,
         )
 
     @staticmethod

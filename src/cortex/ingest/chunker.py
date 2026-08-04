@@ -258,6 +258,7 @@ def chunk_note(
                     tags=set(note.tags),
                     links=set(note.outgoing),
                     sensitivity=note.sensitivity,
+                    note_date=note.note_date,
                 )
             )
             ordinal += 1
@@ -276,6 +277,7 @@ def chunk_note(
                 tags=set(note.tags),
                 links=set(note.outgoing),
                 sensitivity=note.sensitivity,
+                note_date=note.note_date,
             )
         )
     return chunks

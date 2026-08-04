@@ -18,6 +18,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
+from cortex.env import load_dotenv
 from cortex.ingest.chunker import ChunkConfig
 from cortex.llm.protocol import ProviderSpec
 from cortex.models import DataPolicy
@@ -95,6 +96,11 @@ class Settings:
     """Resolved runtime configuration."""
 
     vault_path: Path = field(default_factory=lambda: Path.home() / "Obsidian")
+    vault_name: str = ""
+    """Obsidian vault name, for obsidian:// citation links. Defaults to the
+    vault directory's own name, which is what Obsidian uses unless the vault was
+    explicitly renamed in the app."""
+
     data_dir: Path = field(default_factory=lambda: Path.home() / ".local" / "share" / "cortex")
 
     embed_model: str = "qwen3-embedding:0.6b"
@@ -104,6 +110,13 @@ class Settings:
     rerank_model: str = "bge-reranker-v2-m3"
     rerank_enabled: bool = True
     rerank_candidates: int = 30
+    rerank_idle_ttl: float = 600.0
+    """Seconds of inactivity before the reranker releases its weights. Matters
+    on 16 GB: embedder + reranker + chat model do not co-reside comfortably."""
+
+    temporal_enabled: bool = True
+    """Resolve date expressions in queries and return full coverage of the
+    window rather than the top k."""
 
     top_k: int = 8
     dense_k: int = 30
@@ -130,6 +143,10 @@ class Settings:
             "**/.DS_Store",
         ]
     )
+
+    @property
+    def display_vault_name(self) -> str:
+        return self.vault_name or self.vault_path.name
 
     @property
     def db_path(self) -> Path:
@@ -202,7 +219,17 @@ def _providers_from_toml(raw: Any, defaults: list[ProviderSpec]) -> list[Provide
 def load_settings(
     config_path: Path | None = None, *, env: dict[str, str] | None = None
 ) -> Settings:
-    """Load settings from file and environment."""
+    """Load settings from file and environment.
+
+    When ``env`` is omitted -- the live path, as opposed to a test passing an
+    explicit mapping -- a ``.env`` file is discovered by walking up from the
+    working directory and merged into the process environment first. Keys
+    already exported in the shell take precedence over the file.
+    """
+    if env is None:
+        # Only on the live path: an explicit `env` mapping means a test is
+        # controlling the environment and must not have a stray .env leak in.
+        load_dotenv()
     env = dict(os.environ if env is None else env)
     settings = Settings()
 
@@ -213,6 +240,8 @@ def load_settings(
 
         if "vault_path" in data:
             settings.vault_path = _coerce_path(data["vault_path"])
+        if "vault_name" in data:
+            settings.vault_name = str(data["vault_name"])
         if "data_dir" in data:
             settings.data_dir = _coerce_path(data["data_dir"])
         if "local_only" in data:

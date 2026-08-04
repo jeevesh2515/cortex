@@ -2,6 +2,11 @@
 # API keys are NEVER stored here -- they come from environment variables.
 
 vault_path = "~/Documents/Obsidian"
+
+# Obsidian vault name, used to build clickable obsidian:// citation links.
+# Defaults to the vault directory's own name, which is what Obsidian uses
+# unless you renamed the vault in the app.
+# vault_name = "MyVault"
 # data_dir  = "~/.local/share/cortex"
 
 # Hard switch: when true, nothing leaves this machine regardless of policy.
@@ -20,7 +25,11 @@ dense_k = 30
 fts_k = 30
 graph_enabled = true
 graph_hops = 1
-rerank_enabled = true
+rerank_enabled = true          # needs: pip install 'cortex-brain[rerank]'
+rerank_model = "bge-reranker-v2-m3"   # or "minilm" -- 4x faster, lower ceiling
+rerank_candidates = 30
+rerank_idle_ttl = 600.0        # release reranker weights after 10 min idle
+temporal_enabled = true        # resolve "last week" and return full coverage
 fusion_weights = { dense = 1.0, fts = 0.8, graph = 0.5 }
 
 [chunking]

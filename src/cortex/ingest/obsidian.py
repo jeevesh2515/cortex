@@ -19,6 +19,7 @@ from typing import Any
 import yaml
 
 from cortex.models import Note, Sensitivity, WikiLink, content_hash
+from cortex.temporal import extract_note_date
 
 __all__ = ["extract_links", "extract_tags", "parse_note", "parse_text", "split_frontmatter"]
 
@@ -218,6 +219,7 @@ def parse_text(
         content_hash=content_hash(text),
         mtime=mtime,
         sensitivity=_resolve_sensitivity(frontmatter),
+        note_date=extract_note_date(rel_path, frontmatter, mtime=mtime or None),
     )
 
 

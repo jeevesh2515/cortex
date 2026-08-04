@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from pathlib import Path
 
@@ -91,6 +91,10 @@ class Note:
     content_hash: str = ""
     mtime: float = 0.0
     sensitivity: Sensitivity = Sensitivity.PRIVATE
+    note_date: date | None = None
+    """Resolved from frontmatter or a daily-note filename. Powers temporal
+    queries like "what did I write last week", which pure semantic retrieval
+    answers badly because "last week" carries almost no lexical signal."""
 
     @property
     def note_id(self) -> str:
@@ -121,6 +125,7 @@ class Chunk:
     tags: set[str] = field(default_factory=set)
     links: set[str] = field(default_factory=set)
     sensitivity: Sensitivity = Sensitivity.PRIVATE
+    note_date: date | None = None
 
     @property
     def citation(self) -> str:
@@ -185,3 +190,25 @@ def utcnow() -> datetime:
     """Timezone-aware UTC now. Centralised so tests can monkeypatch one symbol."""
 
     return datetime.now(UTC)
+
+
+def obsidian_uri(note_id: str, vault_name: str, heading: str | None = None) -> str:
+    """Build an ``obsidian://`` URI that opens a note in the Obsidian app.
+
+    Turns a citation from a path the user has to go find into one they can
+    click. Obsidian registers the protocol handler on desktop, so this works
+    from a terminal, a chat client, or an agent's output.
+
+    A ``#heading`` anchor is supported; Obsidian does *not* resolve ``^blockid``
+    anchors through the URI scheme, so block-level precision is not available
+    here and section-level is the best we can offer.
+    """
+    from urllib.parse import quote
+
+    # Obsidian matches on the vault-relative path; the extension is optional but
+    # harmless, and keeping it means the link still resolves if two notes differ
+    # only by extension.
+    uri = f"obsidian://open?vault={quote(vault_name, safe='')}&file={quote(note_id, safe='')}"
+    if heading:
+        uri += f"%23{quote(heading, safe='')}"
+    return uri

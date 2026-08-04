@@ -168,6 +168,50 @@ Five tools become available: `search_notes`, `ask_notes`, `list_links`, `vault_s
 
 Installs a LaunchDaemon that indexes continuously. It is a *Daemon* rather than an Agent deliberately: since macOS 26 Tahoe, Homebrew Python running as a LaunchAgent is subject to TCC checks and fails local network calls with `errno 65`. A LaunchDaemon with a `UserName` key avoids this without prompting for an admin password at runtime.
 
+### Ask about time
+
+Daily notes are only useful if you can query them by date, and "last week"
+carries almost no semantic signal — so Cortex resolves the window and filters on
+it instead of hoping the embedder understands calendars:
+
+```bash
+cortex ask "what did I work on last week?"
+cortex search "meetings in March"
+cortex ask "what happened on 2026-07-14?"
+```
+
+Dates come from frontmatter first, then a daily-note filename, then mtime.
+Crucially, a dated query returns **full coverage of the window** rather than the
+top 8 — a truncated answer to "what did I do last week" is confidently
+incomplete, which is worse than a slow one. The CLI shows how your phrasing was
+interpreted, so there's no guessing.
+
+A bare month name does *not* trigger a filter: "March release planning" is a
+note about March, not a date query. Only "in March" is.
+
+### Clickable citations
+
+Every citation is an `obsidian://` link, so a source is one click away rather
+than a path to go hunting for:
+
+```
+Sources:
+  [1] daily/2026-07-14.md > Standup      ← opens in Obsidian
+```
+
+### Reranking
+
+Reranking is the single highest-leverage addition to hybrid retrieval — roughly
++18% recall@5. It needs a cross-encoder, which pulls torch, so it's opt-in:
+
+```bash
+uv pip install -e ".[rerank]"
+```
+
+Weights load lazily on first query and unload after 10 minutes idle, because the
+embedder, reranker and chat model don't co-reside comfortably in 16GB. If the
+extra isn't installed, `cortex status` says so plainly rather than pretending.
+
 ---
 
 ## Configure
@@ -193,13 +237,18 @@ name = "openrouter"
 zdr_enabled = true    # only after enabling ZDR in your OpenRouter account
 ```
 
-API keys come from the environment, never the config file:
+API keys come from the environment, never the config file. A project `.env` is
+picked up automatically by walking up from the working directory:
 
 ```bash
-export GROQ_API_KEY=...
-export NVIDIA_API_KEY=...
-export OPENROUTER_API_KEY=...
+# .env  (gitignored)
+OPENROUTER_API_KEY=sk-or-...
+GROQ_API_KEY=gsk_...
+NVIDIA_API_KEY=nvapi-...
 ```
+
+Anything already exported in your shell **wins over the file**, so a stale
+`.env` can never shadow a key you set deliberately.
 
 Set `local_only = true` to hard-disable all network egress regardless of policy.
 
@@ -212,7 +261,7 @@ uv pip install -e ".[dev,all]"
 make check      # ruff + mypy --strict + pytest
 ```
 
-247 tests, mypy strict, zero lint warnings. The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one.
+361 tests, mypy strict, zero lint warnings. The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one.
 
 Architecture decisions and their tradeoffs are recorded in [`docs/adr/`](docs/adr/).
 

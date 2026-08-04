@@ -36,7 +36,9 @@ dependencies = [
 index = ["lancedb>=0.29", "pyarrow>=16.0"]
 # Local inference against an OpenAI-compatible endpoint (Ollama / mlx-lm).
 mcp = ["mcp>=1.2"]
-api = ["fastapi>=0.115", "uvicorn>=0.30"]
+# Cross-encoder reranking. Pulls torch, so deliberately opt-in: on macOS this is
+# the MPS wheel (a few hundred MB), not the multi-gigabyte CUDA build.
+rerank = ["sentence-transformers>=3.0"]
 dev = [
   "pytest>=8.2",
   "pytest-cov>=5.0",
@@ -45,7 +47,7 @@ dev = [
   "mypy>=1.10",
   "types-PyYAML",
 ]
-all = ["cortex-brain[index,mcp,api]"]
+all = ["cortex-brain[index,mcp,rerank]"]
 
 [project.scripts]
 cortex = "cortex.cli:app"
@@ -80,6 +82,13 @@ warn_unreachable = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
 files = ["src/cortex"]
+
+[[tool.mypy.overrides]]
+# numpy ships stubs whose `type` statements this mypy rejects when followed.
+# Third-party internals are never our concern; skip following into them.
+module = ["numpy.*", "sentence_transformers.*", "torch.*", "lancedb.*", "pyarrow.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

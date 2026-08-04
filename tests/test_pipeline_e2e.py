@@ -430,3 +430,92 @@ class TestAskE2E:
         answer = engine.ask("sourdough")
         assert answer.citations
         assert answer.provider == "none"
+
+
+class TestTemporalE2E:
+    """Daily notes and date-filtered queries against a real vault."""
+
+    def _vault(self, root: Path) -> IndexPipeline:
+        root.mkdir(exist_ok=True)
+        daily = root / "daily"
+        daily.mkdir(exist_ok=True)
+        # Two weeks of daily notes with distinct content.
+        for day in range(1, 15):
+            (daily / f"2026-07-{day:02d}.md").write_text(
+                f"# 2026-07-{day:02d}\n\nWorked on task number {day} today.\n",
+                encoding="utf-8",
+            )
+        (root / "Evergreen.md").write_text(
+            "# Evergreen\n\nAn undated note about task management in general.\n",
+            encoding="utf-8",
+        )
+        return IndexPipeline(
+            vault=root,
+            store=MemoryStore(),
+            catalog=Catalog(),
+            embedder=HashEmbedder(dimensions=128),
+        )
+
+    def test_daily_note_dates_are_indexed(self, tmp_path: Path) -> None:
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        dated = [c for c in pipeline.store.all_chunks() if c.note_date is not None]
+        assert len(dated) >= 14
+
+    def test_date_filtered_query_returns_only_that_window(self, tmp_path: Path) -> None:
+        from datetime import date
+
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=5)
+        result = engine.retrieve("what tasks did I work on in 2026-07-03?")
+
+        assert result.date_range is not None
+        assert result.date_range.start == date(2026, 7, 3)
+        assert result.chunks
+        assert all(c.chunk.note_date == date(2026, 7, 3) for c in result.chunks)
+
+    def test_temporal_query_returns_coverage_not_top_k(self, tmp_path: Path) -> None:
+        # The behaviour that matters: "in July" wants the whole month, and a
+        # top-5 cutoff would give a confidently incomplete answer.
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=5)
+        result = engine.retrieve("what did I work on in July 2026?")
+
+        assert result.date_range is not None
+        assert not result.truncated
+        assert len(result.chunks) > 5, "coverage must exceed the top_k cutoff"
+        assert len(result.chunks) >= 14
+
+    def test_undated_notes_excluded_from_a_window(self, tmp_path: Path) -> None:
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=20)
+        result = engine.retrieve("task management in July 2026")
+        assert "Evergreen.md" not in result.notes
+
+    def test_non_temporal_query_is_unaffected(self, tmp_path: Path) -> None:
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=5)
+        result = engine.retrieve("task management in general")
+        assert result.date_range is None
+        assert result.truncated
+        assert len(result.chunks) <= 5
+
+    def test_empty_window_falls_back_rather_than_returning_nothing(self, tmp_path: Path) -> None:
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=5)
+        # Nothing is dated in 2019, but the window was understood.
+        result = engine.retrieve("what did I work on in 2019-01?")
+        assert result.date_range is not None
+        assert result.truncated, "flagged as a non-coverage result"
+
+    def test_temporal_disabled_ignores_dates(self, tmp_path: Path) -> None:
+        pipeline = self._vault(tmp_path / "vault")
+        pipeline.run()
+        engine = RetrievalEngine(pipeline.store, pipeline.embedder, top_k=5, temporal_enabled=False)
+        result = engine.retrieve("what did I work on in July 2026?")
+        assert result.date_range is None

@@ -24,7 +24,7 @@ from rich.table import Table
 
 from cortex import __version__
 from cortex.llm.protocol import PolicyViolation, ProviderError
-from cortex.models import Sensitivity
+from cortex.models import Sensitivity, obsidian_uri
 from cortex.runtime import build_runtime
 
 app = typer.Typer(
@@ -128,11 +128,15 @@ def search(
             console.print("[yellow]No matches.[/yellow]")
             raise typer.Exit()
 
-        console.print(
-            f"[dim]{result.elapsed_ms:.0f}ms - "
-            + ", ".join(f"{k}:{v}" for k, v in result.per_retriever.items())
-            + "[/dim]\n"
-        )
+        meta = ", ".join(f"{k}:{v}" for k, v in result.per_retriever.items())
+        console.print(f"[dim]{result.elapsed_ms:.0f}ms - {meta}[/dim]")
+        if result.date_range is not None:
+            mode = "full coverage" if not result.truncated else "no dated matches"
+            console.print(
+                f"[cyan]date filter:[/cyan] {result.date_range} "
+                f"[dim]({result.date_range.days}d, {mode})[/dim]"
+            )
+        console.print()
         for i, scored in enumerate(result.chunks, start=1):
             snippet = scored.chunk.text.strip().replace("\n", " ")
             if len(snippet) > 240:
@@ -193,9 +197,14 @@ def ask(
         console.print()
 
         if answer.citations:
+            vault_name = rt.settings.display_vault_name
             console.print("[dim]Sources:[/dim]")
             for i, chunk in enumerate(answer.citations, start=1):
-                console.print(f"  [dim][{i}][/dim] {chunk.citation}")
+                # Rich renders this as a hyperlink; obsidian:// opens the note
+                # in the app, so a citation is one click rather than a path to
+                # go hunting for.
+                uri = obsidian_uri(chunk.note_id, vault_name)
+                console.print(f"  [dim][{i}][/dim] [link={uri}]{chunk.citation}[/link]")
 
         marker = "[yellow]escalated[/yellow]" if answer.escalated else "[green]local[/green]"
         console.print(f"\n[dim]{answer.provider} ({marker}) - {answer.elapsed_ms:.0f}ms[/dim]")
@@ -219,6 +228,20 @@ def status(
         table.add_row("Chunks", str(counts["chunks"]))
         table.add_row("Store", type(rt.store).__name__)
         table.add_row("Embedder", f"{rt.settings.embed_model} ({type(rt.embedder).__name__})")
+        if rt.reranker is not None:
+            loaded = getattr(rt.reranker, "loaded", False)
+            state = "loaded" if loaded else "lazy"
+            table.add_row(
+                "Reranker", f"[green]{getattr(rt.reranker, 'name', '?')}[/green] ({state})"
+            )
+        elif rt.settings.rerank_enabled:
+            table.add_row(
+                "Reranker",
+                "[yellow]enabled but unavailable[/yellow] - pip install 'cortex-brain[rerank]'",
+            )
+        else:
+            table.add_row("Reranker", "[dim]disabled[/dim]")
+        table.add_row("Vault name", rt.settings.display_vault_name)
         table.add_row("", "")
 
         described = rt.governor.describe()
@@ -309,23 +332,76 @@ def watch(
     config: ConfigOpt = None,
     vault: VaultOpt = None,
     offline: OfflineOpt = False,
-    interval: Annotated[float, typer.Option("--interval", help="Seconds between rescans.")] = 30.0,
+    interval: Annotated[
+        float, typer.Option("--interval", help="Poll interval when not using events.")
+    ] = 30.0,
+    debounce: Annotated[
+        float, typer.Option("--debounce", help="Seconds to settle after an edit.")
+    ] = 2.0,
+    poll: Annotated[
+        bool, typer.Option("--poll", help="Force polling instead of filesystem events.")
+    ] = False,
     verbose: Annotated[bool, typer.Option("--verbose")] = False,
 ) -> None:
-    """Continuously index the vault as it changes."""
+    """Continuously index the vault as it changes.
+
+    Event-driven via FSEvents where watchdog is available, so a saved note is
+    indexed in about a second rather than whenever the next poll happens to
+    land. Falls back to polling if watchdog is missing.
+    """
     _setup_logging(verbose)
     import time
 
+    from cortex.ingest.watcher import VaultWatcher, watchdog_available
+
     with _runtime(config, vault, offline) as rt:
-        console.print(f"Watching [cyan]{rt.settings.vault_path}[/cyan] (Ctrl-C to stop)")
+        # Index once up front, so `watch` leaves the vault consistent even if
+        # nothing changes while it runs.
+        initial = rt.pipeline.run()
+        if initial.indexed or initial.deleted:
+            console.print(f"[dim]startup: {initial.summary()}[/dim]")
+        rt.refresh_graph()
+
+        def reindex(changed: set[Path]) -> None:
+            rt.governor.sample()
+            report = rt.pipeline.run()
+            if report.indexed or report.deleted:
+                console.print(f"[dim]{report.summary()}[/dim]")
+                rt.refresh_graph()
+
+        if not poll and watchdog_available():
+            watcher = VaultWatcher(rt.settings.vault_path, reindex, debounce=debounce)
+            try:
+                watcher.start()
+            except Exception as exc:
+                err_console.print(f"[yellow]watcher unavailable ({exc}); polling[/yellow]")
+            else:
+                console.print(
+                    f"Watching [cyan]{rt.settings.vault_path}[/cyan] "
+                    f"[dim](events, {debounce:.0f}s debounce - Ctrl-C to stop)[/dim]"
+                )
+                try:
+                    while True:
+                        time.sleep(1.0)
+                        # Release reranker weights while the machine is idle.
+                        if rt.reranker is not None:
+                            maybe = getattr(rt.reranker, "maybe_unload", None)
+                            if callable(maybe):
+                                maybe()
+                except KeyboardInterrupt:
+                    console.print("\nStopping...")
+                finally:
+                    watcher.stop()
+                return
+
+        console.print(
+            f"Polling [cyan]{rt.settings.vault_path}[/cyan] "
+            f"[dim](every {interval:.0f}s - Ctrl-C to stop)[/dim]"
+        )
         try:
             while True:
-                rt.governor.sample()
-                report = rt.pipeline.run()
-                if report.indexed or report.deleted:
-                    console.print(f"[dim]{report.summary()}[/dim]")
-                    rt.refresh_graph()
                 time.sleep(interval)
+                reindex(set())
         except KeyboardInterrupt:
             console.print("\nStopped.")
 

@@ -15,11 +15,12 @@ from cortex.catalog import Catalog
 from cortex.config import Settings, load_settings
 from cortex.index.store import MemoryStore, VectorStore
 from cortex.ingest.pipeline import IndexPipeline
-from cortex.llm.protocol import EmbeddingProvider
+from cortex.llm.protocol import EmbeddingProvider, RerankProvider
 from cortex.llm.providers import HashEmbedder, OllamaEmbedder, build_chat_providers
 from cortex.llm.router import Router
 from cortex.retrieve.engine import RetrievalEngine
 from cortex.retrieve.graph import LinkGraph
+from cortex.retrieve.rerank import build_reranker
 from cortex.thermal.governor import ThermalGovernor, default_probe
 
 logger = logging.getLogger(__name__)
@@ -39,12 +40,14 @@ class Runtime:
     router: Router
     pipeline: IndexPipeline
     graph: LinkGraph | None = None
+    reranker: RerankProvider | None = None
 
     def engine(self) -> RetrievalEngine:
         return RetrievalEngine(
             self.store,
             self.embedder,
             graph=self.graph,
+            reranker=self.reranker,
             router=self.router,
             top_k=self.settings.top_k,
             dense_k=self.settings.dense_k,
@@ -52,6 +55,7 @@ class Runtime:
             graph_hops=self.settings.graph_hops,
             fusion_weights=self.settings.fusion_weights,
             rerank_candidates=self.settings.rerank_candidates,
+            temporal_enabled=self.settings.temporal_enabled,
         )
 
     def refresh_graph(self) -> LinkGraph:
@@ -121,6 +125,14 @@ def build_runtime(
     providers = build_chat_providers(settings.providers)
     router = Router(providers)
 
+    # Lazy inside: constructing this does not load weights, so `cortex index`
+    # pays nothing for a reranker it never calls.
+    reranker = build_reranker(
+        settings.rerank_model,
+        enabled=settings.rerank_enabled and not offline,
+        idle_ttl=settings.rerank_idle_ttl,
+    )
+
     pipeline = IndexPipeline(
         vault=settings.vault_path,
         store=store,
@@ -139,4 +151,5 @@ def build_runtime(
         governor=governor,
         router=router,
         pipeline=pipeline,
+        reranker=reranker,
     )

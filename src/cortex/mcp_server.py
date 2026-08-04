@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from cortex.llm.protocol import PolicyViolation, ProviderError
-from cortex.models import Sensitivity
+from cortex.models import Sensitivity, obsidian_uri
 from cortex.runtime import Runtime, build_runtime
 
 logger = logging.getLogger(__name__)
@@ -145,15 +145,22 @@ class CortexTools:
     def search_notes(self, query: str, top_k: int = 8, use_graph: bool = True) -> dict[str, Any]:
         self._ensure_graph()
         result = self.rt.engine().retrieve(query, top_k=top_k, use_graph=use_graph)
+        vault = self.rt.settings.display_vault_name
         return {
             "query": query,
             "elapsed_ms": round(result.elapsed_ms, 1),
             "retrievers": result.per_retriever,
+            "date_filter": str(result.date_range) if result.date_range else None,
+            "full_coverage": not result.truncated,
             "results": [
                 {
                     "rank": i,
                     "source": scored.chunk.citation,
                     "note_id": scored.chunk.note_id,
+                    "obsidian_uri": obsidian_uri(scored.chunk.note_id, vault),
+                    "note_date": (
+                        scored.chunk.note_date.isoformat() if scored.chunk.note_date else None
+                    ),
                     "text": scored.chunk.text,
                     "score": round(scored.score, 5),
                     "found_via": sorted(scored.components) or [scored.source],
@@ -188,7 +195,14 @@ class CortexTools:
             "left_this_machine": answer.escalated,
             "elapsed_ms": round(answer.elapsed_ms, 1),
             "citations": [
-                {"index": i, "source": chunk.citation, "note_id": chunk.note_id}
+                {
+                    "index": i,
+                    "source": chunk.citation,
+                    "note_id": chunk.note_id,
+                    "obsidian_uri": obsidian_uri(
+                        chunk.note_id, self.rt.settings.display_vault_name
+                    ),
+                }
                 for i, chunk in enumerate(answer.citations, start=1)
             ],
         }
