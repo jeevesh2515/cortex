@@ -14,11 +14,28 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable, Sequence
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from cortex.index.store import StoredChunk
 from cortex.models import Chunk, ScoredChunk, Sensitivity
+
+
+def _parse_iso_date(raw: object) -> date | None:
+    """Read an ISO date back, tolerating the empty string and legacy rows.
+
+    Indexes written before ``note_date`` existed have no such column, so a
+    missing value must be ``None`` rather than an error -- otherwise upgrading
+    would require a full rebuild before the store could even be read.
+    """
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(str(raw))
+    except ValueError:
+        return None
+
 
 if TYPE_CHECKING:
     import lancedb
@@ -66,6 +83,12 @@ class LanceStore:
                 pa.field("tags", pa.string()),
                 pa.field("links", pa.string()),
                 pa.field("sensitivity", pa.string()),
+                # ISO date string rather than pa.date32(): nullable, trivially
+                # readable in a Lance dump, and the filtering is done in Python
+                # anyway. Absent from the schema entirely until now, which meant
+                # temporal queries silently found nothing on the LanceDB path
+                # while passing every test against the in-memory store.
+                pa.field("note_date", pa.string()),
                 pa.field("vector", pa.list_(pa.float32(), dimensions)),
             ]
         )
@@ -110,6 +133,7 @@ class LanceStore:
             "tags": "\x1f".join(sorted(chunk.tags)),
             "links": "\x1f".join(sorted(chunk.links)),
             "sensitivity": chunk.sensitivity.value,
+            "note_date": chunk.note_date.isoformat() if chunk.note_date else "",
             "vector": [float(x) for x in item.vector],
         }
 
@@ -127,6 +151,7 @@ class LanceStore:
             tags=set(unpack(row.get("tags"))),
             links=set(unpack(row.get("links"))),
             sensitivity=Sensitivity(row.get("sensitivity", "private")),
+            note_date=_parse_iso_date(row.get("note_date")),
         )
 
     @staticmethod

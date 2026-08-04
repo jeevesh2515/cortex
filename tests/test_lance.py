@@ -181,3 +181,107 @@ class TestSubstitutability:
         result = engine.retrieve("bulk ferment the starter")
         assert result.chunks
         assert result.chunks[0].chunk.note_id == "Sourdough.md"
+
+
+class TestRoundTripFidelity:
+    """Guards the bug class where a new Chunk field is silently dropped.
+
+    `note_date` was added to the model and wired through the parser, chunker and
+    engine, and every temporal test passed -- against MemoryStore, which hands
+    Chunk objects straight back. LanceStore round-trips through Arrow, and the
+    field was missing from the schema, so temporal queries found nothing on the
+    only store real users run. These tests compare the two stores field by
+    field, so the next added field cannot vanish the same way.
+    """
+
+    def _rich_chunk(self) -> Chunk:
+        from datetime import date
+
+        return Chunk(
+            chunk_id="daily/2026-07-15.md#abc",
+            note_id="daily/2026-07-15.md",
+            text="Worked on the retrieval rewrite.",
+            heading_path=["Log", "Afternoon"],
+            ordinal=3,
+            token_estimate=42,
+            tags={"work", "work/rewrite"},
+            links={"retrieval"},
+            sensitivity=Sensitivity.PUBLIC,
+            note_date=date(2026, 7, 15),
+        )
+
+    def test_lance_preserves_every_field(self, store) -> None:  # type: ignore[no-untyped-def]
+        original = self._rich_chunk()
+        store.upsert([StoredChunk(original, vec(1.0))])
+        restored = store.chunks_for_note(original.note_id)[0]
+
+        assert restored.chunk_id == original.chunk_id
+        assert restored.note_id == original.note_id
+        assert restored.text == original.text
+        assert restored.heading_path == original.heading_path
+        assert restored.ordinal == original.ordinal
+        assert restored.tags == original.tags
+        assert restored.links == original.links
+        assert restored.sensitivity is original.sensitivity
+        assert restored.note_date == original.note_date, "note_date must survive Arrow"
+
+    def test_both_stores_agree(self, store) -> None:  # type: ignore[no-untyped-def]
+        """MemoryStore and LanceStore must return equivalent chunks."""
+        from cortex.index.store import MemoryStore
+
+        original = self._rich_chunk()
+        memory = MemoryStore()
+        memory.upsert([StoredChunk(original, vec(1.0))])
+        store.upsert([StoredChunk(original, vec(1.0))])
+
+        from_memory = memory.chunks_for_note(original.note_id)[0]
+        from_lance = store.chunks_for_note(original.note_id)[0]
+
+        for attribute in (
+            "chunk_id",
+            "note_id",
+            "text",
+            "heading_path",
+            "ordinal",
+            "tags",
+            "links",
+            "sensitivity",
+            "note_date",
+        ):
+            assert getattr(from_memory, attribute) == getattr(from_lance, attribute), (
+                f"stores disagree on {attribute}"
+            )
+
+    def test_absent_date_round_trips_as_none(self, store) -> None:  # type: ignore[no-untyped-def]
+        store.upsert([StoredChunk(chunk("no-date"), vec(1.0))])
+        assert store.chunks_for_note("n.md")[0].note_date is None
+
+    def test_temporal_retrieval_works_on_lance(self, store) -> None:  # type: ignore[no-untyped-def]
+        """End to end: the failure this bug would have caused in production."""
+        from datetime import date
+
+        from cortex.llm.providers import HashEmbedder
+        from cortex.retrieve.engine import RetrievalEngine
+
+        embedder = HashEmbedder(dimensions=DIMS)
+        items = []
+        for day in (3, 4, 5):
+            text = f"Worked on task number {day} today."
+            items.append(
+                StoredChunk(
+                    Chunk(
+                        chunk_id=f"daily/2026-07-{day:02d}.md#1",
+                        note_id=f"daily/2026-07-{day:02d}.md",
+                        text=text,
+                        note_date=date(2026, 7, day),
+                    ),
+                    embedder.embed([text])[0],
+                )
+            )
+        store.upsert(items)
+
+        engine = RetrievalEngine(store, embedder, top_k=5)
+        result = engine.retrieve("what did I work on in 2026-07-04?")
+        assert result.date_range is not None
+        assert result.chunks, "temporal retrieval must find dated chunks in LanceDB"
+        assert all(c.chunk.note_date == date(2026, 7, 4) for c in result.chunks)
