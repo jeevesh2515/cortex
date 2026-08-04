@@ -1,0 +1,57 @@
+# Cortex configuration. Copy to ~/.config/cortex/cortex.toml and edit.
+# API keys are NEVER stored here -- they come from environment variables.
+
+vault_path = "~/Documents/Obsidian"
+# data_dir  = "~/.local/share/cortex"
+
+# Hard switch: when true, nothing leaves this machine regardless of policy.
+local_only = false
+
+exclude_globs = [".obsidian/**", ".trash/**", ".git/**", "**/node_modules/**"]
+
+[embedding]
+model = "qwen3-embedding:0.6b"   # ~1.5 GB. Best quality-per-GB at 16 GB.
+dimensions = 1024
+ollama_url = "http://localhost:11434"
+
+[retrieval]
+top_k = 8
+dense_k = 30
+fts_k = 30
+graph_enabled = true
+graph_hops = 1
+rerank_enabled = true
+fusion_weights = { dense = 1.0, fts = 0.8, graph = 0.5 }
+
+[chunking]
+target_tokens = 512      # 2026 consensus; semantic chunking underperforms this
+overlap_ratio = 0.10
+min_tokens = 64          # floor guards against micro-fragments
+max_tokens = 900
+
+[thermal]
+# Tuned for a fanless 16 GB Air. Raise on a machine with fans.
+boost_workers = 4
+nominal_workers = 2
+throttled_workers = 1
+critical_workers = 0
+throttle_speed_limit = 95
+critical_speed_limit = 60
+min_battery_for_backfill = 30
+sample_interval = 10.0
+
+# Providers patch the shipped defaults -- name an existing one to override
+# single fields, or give base_url + model to add a new endpoint.
+#
+# [[providers]]
+# name = "openrouter"
+# zdr_enabled = true      # ONLY after enabling zero-data-retention on your account
+#
+# [[providers]]
+# name = "cerebras"
+# base_url = "https://api.cerebras.ai/v1"
+# model = "llama3.1-8b"
+# policy = "no_train"
+# api_key_env = "CEREBRAS_API_KEY"
+# tpd = 1000000
+# priority = 15
