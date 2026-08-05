@@ -42,6 +42,9 @@ rerank = ["sentence-transformers>=3.0"]
 # PDF / EPUB / HTML ingestion. pymupdf4llm emits markdown with headings intact,
 # which the structure-aware chunker then splits properly.
 documents = ["pymupdf4llm>=0.0.17"]
+# HTTP server backing `cortex serve` -- FastAPI and uvicorn. Kept optional so a
+# pure-Cortex install stays light and only imports the web runtime on demand.
+server = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
 dev = [
   "pytest>=8.2",
   "pytest-cov>=5.0",
@@ -50,7 +53,7 @@ dev = [
   "mypy>=1.10",
   "types-PyYAML",
 ]
-all = ["cortex-brain[index,mcp,rerank,documents]"]
+all = ["cortex-brain[index,mcp,rerank,documents,server]"]
 
 [project.scripts]
 cortex = "cortex.cli:app"
@@ -99,6 +102,7 @@ addopts = "-q --strict-markers"
 markers = [
   "integration: requires optional native deps (lancedb) or network",
 ]
+asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["src/cortex"]

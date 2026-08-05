@@ -59,6 +59,12 @@ class LinkGraph:
     _alias: dict[str, str] = field(default_factory=dict)
     """Maps a normalised link target to the note_id that resolves it."""
 
+    titles: dict[str, str] = field(default_factory=dict)
+    """``note_id -> display title``. Populated at build time so the graph view
+    on the UI does not have to walk the catalog for every label. Costs ~30
+    bytes per note (the rel_path is shorter than the title for most notes),
+    so it does not justify a lazy-resolution cache."""
+
     tags: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     """tag -> note_ids carrying it."""
 
@@ -71,6 +77,10 @@ class LinkGraph:
         for note in notes:
             graph._alias[_normalise(note.rel_path)] = note.note_id
             graph._alias.setdefault(_normalise(note.title), note.note_id)
+            # Titles take priority over rel_paths for human-facing display, so
+            # we record them keyed by note_id; the rel_path is still useful as
+            # a fallback when no frontmatter title was set (then title == stem).
+            graph.titles.setdefault(note.note_id, note.title)
 
         # Pass 2: resolve links. Unresolvable targets are dropped rather than
         # creating phantom nodes -- Obsidian calls these "unresolved links" and

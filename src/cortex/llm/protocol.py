@@ -154,6 +154,9 @@ class ChatProvider(Protocol):
 
     spec: ProviderSpec
 
+    @property
+    def configured(self) -> bool: ...
+
     def complete(
         self,
         messages: list[ChatMessage],
