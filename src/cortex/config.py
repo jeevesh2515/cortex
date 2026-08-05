@@ -394,13 +394,14 @@ def load_settings(
 
         serve = data.get("serve", {})
         if isinstance(serve, dict):
-            base = ServeConfig()
+            serve_base = ServeConfig()
+            port_val = serve.get("port", serve_base.port)
             settings.serve = ServeConfig(
-                host=str(serve.get("host", base.host)),
-                port=int(serve.get("port", base.port)),
-                open_browser=bool(serve.get("open_browser", base.open_browser)),
+                host=str(serve.get("host", serve_base.host)),
+                port=int(port_val) if port_val is not None else serve_base.port,
+                open_browser=bool(serve.get("open_browser", serve_base.open_browser)),
             )
-            origins_raw = serve.get("cors_origins", list(base.cors_origins))
+            origins_raw = serve.get("cors_origins", list(serve_base.cors_origins))
             if isinstance(origins_raw, list):
                 settings.serve = replace(
                     settings.serve,

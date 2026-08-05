@@ -190,11 +190,7 @@ def check_ollama(settings: Settings) -> Check:
     try:
         with urllib.request.urlopen(f"{url}/api/ps", timeout=1.0) as resp:
             loaded_payload = json.loads(resp.read())
-        loaded = {
-            m.get("name", "")
-            for m in loaded_payload.get("models", [])
-            if m.get("name")
-        }
+        loaded = {m.get("name", "") for m in loaded_payload.get("models", []) if m.get("name")}
     except (OSError, ValueError, json.JSONDecodeError):
         # /api/ps is a diagnostic nicety, not a gate: ignore its failures.
         pass
@@ -224,9 +220,7 @@ def check_ollama(settings: Settings) -> Check:
 # Pattern for a single assignment inside an ``Environment=`` line. systemd
 # accepts whitespace-separated lists (``Environment=K1=v1 K2=v2``), so the
 # outer caller splits on whitespace and feeds each token here.
-_SYSTEMD_ASSIGNMENT = re.compile(
-    r"""^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*"?\s*$"""
-)
+_SYSTEMD_ASSIGNMENT = re.compile(r"""^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*"?\s*$""")
 
 
 def _candidate_paths() -> tuple[tuple[Path, str], ...]:
@@ -407,7 +401,7 @@ def _parse_systemctl_env_lines(output: str) -> dict[str, str]:
         stripped = line.strip()
         if not stripped.startswith("Environment="):
             continue
-        body = stripped[len("Environment="):]
+        body = stripped[len("Environment=") :]
         for token in body.split():
             token = token.strip('"')
             match = _SYSTEMD_ASSIGNMENT.match(token)
@@ -556,9 +550,8 @@ class _OllamaSupervisor:
         supervisor is disabled even when the live probe fails, because the
         on-disk config is the user's stated intent.
         """
-        return (
-            (self.static_value is not None and self.static_value == "0")
-            or (self.live_value is not None and self.live_value == "0")
+        return (self.static_value is not None and self.static_value == "0") or (
+            self.live_value is not None and self.live_value == "0"
         )
 
     @property
@@ -780,7 +773,7 @@ def check_inference_path(settings: Settings) -> Check:
     details = [
         f"{name}: {row.get('PROCESSOR', '?')}"
         for (name, _kind), row in zip(per_model_kinds, rows, strict=False)
-    ]    # Cross-check against supervisor policy.
+    ]  # Cross-check against supervisor policy.
     if supervisor.disabled:
         # Supervisor says CPU. *Any* GPU contribution while the user has
         # explicitly disabled GPU is the contradiction we want to
@@ -989,8 +982,6 @@ def check_gpu_path(_settings: Settings) -> Check:
     else:
         live_value = _live_env.get("OLLAMA_NUM_GPU")
 
-
-
     if static_source is not None and live_value is not None:
         static_value, static_path, _static_kind = static_source
         if static_value == live_value:
@@ -1074,8 +1065,7 @@ def check_gpu_path(_settings: Settings) -> Check:
         return Check(
             "GPU path",
             Status.WARN,
-            f"live daemon env has OLLAMA_NUM_GPU={live_value} but no static "
-            "config backs it",
+            f"live daemon env has OLLAMA_NUM_GPU={live_value} but no static config backs it",
             hint=(
                 "This is consistent with a *transient* override: `launchctl "
                 "setenv OLLAMA_NUM_GPU=` (macOS) or a shell-launched `ollama "
@@ -1127,8 +1117,7 @@ def check_gpu_path(_settings: Settings) -> Check:
             "live daemon env also unset)"
             if static_path is not None
             else (
-                "default GPU acceleration (no static config file found; "
-                "live daemon env also unset)"
+                "default GPU acceleration (no static config file found; live daemon env also unset)"
             )
         ),
         details=detail_lines,
@@ -1253,9 +1242,7 @@ def check_privacy(settings: Settings) -> Check:
     explained = router.explain(Sensitivity.PRIVATE)
 
     eligible = sorted(p for p, verdict in explained.items() if verdict.startswith("eligible"))
-    refused = sorted(
-        f"{p}: {verdict}" for p, verdict in explained.items() if p not in eligible
-    )
+    refused = sorted(f"{p}: {verdict}" for p, verdict in explained.items() if p not in eligible)
 
     if not eligible:
         return Check(

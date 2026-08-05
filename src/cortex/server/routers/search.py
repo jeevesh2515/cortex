@@ -21,8 +21,7 @@ from pathlib import PurePosixPath
 
 from fastapi import APIRouter, Query
 
-from cortex.models import Sensitivity, obsidian_uri
-from cortex.retrieve.graph import LinkGraph
+from cortex.models import obsidian_uri
 from cortex.server.dependencies import get_runtime
 from cortex.server.schemas import (
     CitationOut,
@@ -90,7 +89,7 @@ async def links(note_id: str) -> dict[str, object]:
 @router.get("/graph/stats")
 async def graph_stats() -> dict[str, object]:
     rt = get_runtime()
-    return rt.refresh_graph().stats
+    return dict(rt.refresh_graph().stats)
 
 
 @router.get("/graph", response_model=GraphResponse)
@@ -177,7 +176,8 @@ async def graph(
     titles = graph.titles or {}
 
     def _title(note_id: str) -> str:
-        return titles.get(note_id) or PurePosixPath(note_id).stem.replace("-", " ").replace("_", " ")
+        fallback = PurePosixPath(note_id).stem.replace("-", " ").replace("_", " ")
+        return titles.get(note_id) or fallback
 
     # ----- edges within the selected subset -------------------------------
     edges: list[GraphEdge] = []

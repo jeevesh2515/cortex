@@ -139,9 +139,7 @@ def build_runtime(
     # ``IndexPipeline``, whose ``respect_thermal`` gate becomes a no-op) and
     # leave status display to surface that fact explicitly.
     governor = (
-        ThermalGovernor(probe=default_probe(), config=settings.governor)
-        if not in_memory
-        else None
+        ThermalGovernor(probe=default_probe(), config=settings.governor) if not in_memory else None
     )
 
     providers = build_chat_providers(settings.providers)

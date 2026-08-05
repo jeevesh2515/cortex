@@ -69,12 +69,16 @@ async def status() -> StatusResponse:
     if rt.governor is not None:
         rt.governor.sample(force=True)
         described = rt.governor.describe()
+        power_raw = described.get("power")
+        cpu_raw = described.get("cpu_speed_limit")
+        bat_raw = described.get("battery_percent")
+        w_raw = described.get("workers", 0)
         thermal = ThermalStatus(
             state=str(described.get("state", "unknown")),
-            power=described.get("power"),
-            cpu_speed_limit=described.get("cpu_speed_limit"),
-            battery_percent=described.get("battery_percent"),
-            workers=int(described.get("workers", 0)),
+            power=str(power_raw) if power_raw is not None else None,
+            cpu_speed_limit=int(cpu_raw) if isinstance(cpu_raw, (int, str)) else None,
+            battery_percent=int(bat_raw) if isinstance(bat_raw, (int, str)) else None,
+            workers=int(w_raw) if isinstance(w_raw, (int, str)) else 0,
             may_backfill=bool(described.get("may_backfill", False)),
             available=True,
         )
@@ -104,11 +108,13 @@ async def status() -> StatusResponse:
 
 @router.post("/reindex")
 async def reindex(req: ReindexRequest) -> dict[str, object]:
+    from cortex.index.pipeline import IndexReport
+
     rt = get_runtime()
 
     # Run in a worker thread so the event loop stays responsive. The pipeline
     # does blocking I/O; leaving it on the loop would freeze the whole app.
-    def _run() -> object:
+    def _run() -> IndexReport:
         return rt.pipeline.run(
             full=req.full,
             respect_thermal=not req.ignore_thermal,

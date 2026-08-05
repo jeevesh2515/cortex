@@ -720,7 +720,7 @@ def serve(
     from cortex.config import ServeConfig, load_settings
 
     try:
-        import uvicorn  # type: ignore[import-not-found]  # noqa: F401
+        import uvicorn
     except ImportError as exc:  # pragma: no cover
         raise typer.BadParameter(
             "cortex serve needs the optional [server] extra. "
@@ -731,14 +731,17 @@ def serve(
     if vault is not None:
         settings.vault_path = vault.expanduser()
     if host is not None or port is not None or open_browser is not None:
-        serve_overrides: dict[str, object] = {
-            "host": host if host is not None else settings.serve.host,
-            "port": port if port is not None else settings.serve.port,
-            # Default: leave open_browser alone so --open/--no-open is opt-in.
-            "open_browser": open_browser if open_browser is not None else settings.serve.open_browser,
-            "cors_origins": settings.serve.cors_origins,
-        }
-        settings = replace(settings, serve=replace(ServeConfig(**serve_overrides)))
+        settings = replace(
+            settings,
+            serve=ServeConfig(
+                host=host if host is not None else settings.serve.host,
+                port=port if port is not None else settings.serve.port,
+                open_browser=(
+                    open_browser if open_browser is not None else settings.serve.open_browser
+                ),
+                cors_origins=settings.serve.cors_origins,
+            ),
+        )
 
     # Build the runtime once eagerly so the API endpoints see it consistently
     # (and so we can print a friendly "ready" line rather than letting the first
@@ -753,7 +756,9 @@ def serve(
 
     from cortex.server.app import DEFAULT_FRONTEND_DIST
 
-    frontend_built = DEFAULT_FRONTEND_DIST.exists() and (DEFAULT_FRONTEND_DIST / "index.html").exists()
+    frontend_built = (
+        DEFAULT_FRONTEND_DIST.exists() and (DEFAULT_FRONTEND_DIST / "index.html").exists()
+    )
     frontend_lines: list[str] = []
     if not frontend_built:
         frontend_lines = [
@@ -761,7 +766,7 @@ def serve(
             "[yellow]! frontend/dist/index.html not found.[/yellow]",
             "  The web UI will not load. To build it:",
             "  [cyan]cd frontend && npm install && npm run build[/cyan]",
-            "  The API still works at [dim]/api/*[/dim] -- e.g. [cyan]" + url + "/api/whoami[/cyan]",
+            f"  The API works at [dim]/api/*[/dim] -- e.g. [cyan]{url}/api/whoami[/cyan]",
         ]
 
     console.print(
@@ -778,6 +783,7 @@ def serve(
     )
 
     if settings.serve.open_browser:
+        import contextlib
         import threading
         import time
         import webbrowser
@@ -786,10 +792,8 @@ def serve(
             # Give uvicorn a beat to bind the port before the browser asks, so
             # the EventSource handshake doesn't race the first listener.
             time.sleep(0.6)
-            try:
+            with contextlib.suppress(Exception):
                 webbrowser.open(url)
-            except Exception:  # noqa: BLE001 - browser launch is best-effort
-                pass
 
         threading.Thread(target=_open, daemon=True).start()
 

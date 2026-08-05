@@ -19,7 +19,6 @@ the chat scroll rather than dropping the connection.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -45,20 +44,18 @@ router = APIRouter(prefix="/api", tags=["chat"])
 class _StreamContext:
     request: ChatRequest
     local_only: bool
-    runtime: "object"  # Runtime, kept loose to import cheaply
+    runtime: object  # Runtime, kept loose to import cheaply
 
 
 def _sse(event: SSEEvent) -> bytes:
     return event.encode()
 
 
-async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> AsyncIterator[bytes]:
+async def _stream_chat(req: ChatRequest, signal: object | None = None) -> AsyncIterator[bytes]:
     rt = get_runtime()
     engine = rt.engine()
 
-    last_user = next(
-        (msg for msg in reversed(req.messages) if msg.role == "user"), None
-    )
+    last_user = next((msg for msg in reversed(req.messages) if msg.role == "user"), None)
     if last_user is None:
         yield _sse(SSEEvent(type="error", data={"message": "no user message"}))
         return
@@ -148,13 +145,11 @@ async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> Asyn
         return
 
     try:
-        from cortex.llm.protocol import ChatMessage as _CM
+        from cortex.llm.protocol import ChatMessage
 
-        messages = [
-            _CM(role=m.role, content=m.content) for m in req.messages if m.content
-        ]
+        messages = [ChatMessage(role=m.role, content=m.content) for m in req.messages if m.content]
         if not messages or messages[-1].role != "user":
-            messages = [*messages, _CM(role="user", content=query)]
+            messages = [*messages, ChatMessage(role="user", content=query)]
 
         # We synthesise via the router (non-streaming), then chunk the text out
         # as a controlled token stream. Each provider supports streaming over
@@ -175,9 +170,9 @@ async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> Asyn
         # the bare question and forgets the prior turns.
         if len(messages) > 1:
             prompt_messages = [
-                _CM(role="system", content=prompt_messages[0].content),
+                ChatMessage(role="system", content=prompt_messages[0].content),
                 *[
-                    _CM(role=m.role, content=m.content)
+                    ChatMessage(role=m.role, content=m.content)
                     for m in messages[1:]
                     if m.role in {"user", "assistant"}
                 ][-8:],  # cap turns so the prompt can't grow unbounded
@@ -194,7 +189,8 @@ async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> Asyn
         yield _sse(SSEEvent(type="error", data={"type": "privacy_policy", "message": str(exc)}))
         return
     except ProviderError as exc:
-        yield _sse(SSEEvent(type="error", data={"type": "provider_unavailable", "message": str(exc)}))
+        err_payload = {"type": "provider_unavailable", "message": str(exc)}
+        yield _sse(SSEEvent(type="error", data=err_payload))
         return
     except Exception as exc:  # last-resort guard around the synthesis call
         logger.exception("synthesis failed")
@@ -240,7 +236,7 @@ async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> Asyn
         await asyncio.sleep(0)
         # Defense-in-depth: if the client disconnected mid-stream, stop
         # emitting rather than throwing on a closed socket.
-        if ac_signal_obj and getattr(ac_signal_obj, "aborted", False):
+        if signal and getattr(signal, "aborted", False):
             return
 
     yield _sse(
@@ -259,8 +255,6 @@ async def _stream_chat(req: ChatRequest, signal: "object | None" = None) -> Asyn
     )
 
     if req.remember and rt.memory is not None and rt.memory.enabled:
-        import os
-
         try:
             written = rt.memory.write(
                 MemoryNote(

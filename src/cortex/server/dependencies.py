@@ -19,7 +19,7 @@ from typing import Any
 from cortex.config import Settings, load_settings
 from cortex.runtime import Runtime, build_runtime
 
-__all__ = ["get_runtime", "set_runtime", "reset_runtime"]
+__all__ = ["get_runtime", "reset_runtime", "set_runtime"]
 
 _lock = threading.Lock()
 _runtime: Runtime | None = None

@@ -237,9 +237,7 @@ class TestGraph:
         assert body["edges"] == []
         assert body["center"] is None
 
-    async def test_subgraph_around_center_includes_neighbours(
-        self, in_mem_runtime
-    ) -> None:
+    async def test_subgraph_around_center_includes_neighbours(self, in_mem_runtime) -> None:
         # Build a real on-disk vault so the pipeline finishes with indexed
         # chunks and a non-trivial graph.
         from cortex.server.dependencies import set_runtime
@@ -256,9 +254,7 @@ class TestGraph:
         set_runtime(in_mem_runtime)
 
         app = create_app()
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             reindex = await c.post("/api/reindex", json={"full": False})
             assert reindex.status_code == 200
             # Hub should appear in the response and be marked is_hub when no
@@ -280,8 +276,7 @@ class TestGraph:
             assert body["center"] == "Hub.md"
             # Hub -> Embed should appear as an embed kind (transclusion, ![[...]]).
             embed_edge = next(
-                (e for e in body["edges"]
-                 if e["source"] == "Hub.md" and e["target"] == "Embed.md"),
+                (e for e in body["edges"] if e["source"] == "Hub.md" and e["target"] == "Embed.md"),
                 None,
             )
             assert embed_edge is not None

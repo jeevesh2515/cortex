@@ -62,9 +62,7 @@ async def memory_recent(limit: int = 12) -> list[MemoryNoteOut]:
     if not root.exists():
         return []
 
-    notes = sorted(root.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[
-        :limit
-    ]
+    notes = sorted(root.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]
     out: list[MemoryNoteOut] = []
     for path in notes:
         text = path.read_text(encoding="utf-8", errors="replace")

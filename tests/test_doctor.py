@@ -41,15 +41,11 @@ def empty_settings(tmp_path: Path) -> Settings:
 
 class TestStatusSummary:
     def test_ready_line_used_when_no_issues(self) -> None:
-        report = DoctorReport(
-            checks=[Check("a", Status.PASS, ""), Check("b", Status.INFO, "")]
-        )
+        report = DoctorReport(checks=[Check("a", Status.PASS, ""), Check("b", Status.INFO, "")])
         assert report.summary_line() == "Ready"
 
     def test_singular_issue(self) -> None:
-        report = DoctorReport(
-            checks=[Check("a", Status.PASS, ""), Check("b", Status.WARN, "x")]
-        )
+        report = DoctorReport(checks=[Check("a", Status.PASS, ""), Check("b", Status.WARN, "x")])
         assert report.summary_line() == "1 issue"
 
     def test_plural_issues(self) -> None:
@@ -136,7 +132,7 @@ class TestOllamaCheck:
 
         payloads = [
             {"models": [{"name": "some-other-model"}]},  # /api/tags
-            {"models": []},                              # /api/ps
+            {"models": []},  # /api/ps
         ]
         idx = 0
 
@@ -323,9 +319,7 @@ class TestGpuPathCheck:
 
         # Every candidate is a path inside tmp_path that does NOT exist.
         # The check should resolve to INFO (no evidence) rather than FAIL.
-        fake_paths = tuple(
-            (tmp_path / f"missing-{i}.plist", "plist") for i in range(3)
-        )
+        fake_paths = tuple((tmp_path / f"missing-{i}.plist", "plist") for i in range(3))
         monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", fake_paths)
 
         result = doctor.check_gpu_path(settings)
@@ -507,7 +501,7 @@ class TestGpuPathCheck:
         # inside the value. The parser must NOT return ``foo``.
         _write_systemd_unit(
             unit,
-            ['Environment=OLLAMA_NUM_GPU=foo#bar'],
+            ["Environment=OLLAMA_NUM_GPU=foo#bar"],
         )
         monkeypatch.setattr(
             doctor,
@@ -528,8 +522,7 @@ class TestGpuPathCheck:
         # missing and the doctor would have spuriously warned; either
         # branch below rejects the malformed outcome.
         assert "foo#bar" in joined or (
-            result.status is not Status.WARN
-            and "drift" not in result.message.lower()
+            result.status is not Status.WARN and "drift" not in result.message.lower()
         )
 
     def test_pass_message_acknowledges_environmentfile(
@@ -614,8 +607,10 @@ class TestGpuPathCheck:
         result = doctor.check_gpu_path(settings)
         # Live probe succeeded and found NUM_GPU=0; no static config.
         assert result.status is Status.WARN
-        assert "transient override" in " ".join(result.details).lower() or \
-            "live" in result.message.lower()
+        assert (
+            "transient override" in " ".join(result.details).lower()
+            or "live" in result.message.lower()
+        )
         # Look up the live env value in details; should collapse to '0'.
         assert any("live: '0'" in line for line in result.details)
 
@@ -666,13 +661,9 @@ class TestGpuPathCheck:
         from cortex import doctor
 
         plist = self._candidate_for(tmp_path, "plist", {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
         # Live agrees with static.
-        monkeypatch.setattr(
-            doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "0"}
-        )
+        monkeypatch.setattr(doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "0"})
 
         result = doctor.check_gpu_path(settings)
         assert result.status is Status.WARN
@@ -692,12 +683,8 @@ class TestGpuPathCheck:
         from cortex import doctor
 
         plist = self._candidate_for(tmp_path, "plist", {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
-        monkeypatch.setattr(
-            doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "1"}
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
+        monkeypatch.setattr(doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "1"})
 
         result = doctor.check_gpu_path(settings)
         assert result.status is Status.WARN
@@ -720,12 +707,8 @@ class TestGpuPathCheck:
         from cortex import doctor
 
         plist = self._candidate_for(tmp_path, "plist", {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
-        monkeypatch.setattr(
-            doctor, "_live_ollama_env", lambda: {}
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
+        monkeypatch.setattr(doctor, "_live_ollama_env", lambda: {})
 
         result = doctor.check_gpu_path(settings)
         assert result.status is Status.WARN
@@ -742,12 +725,8 @@ class TestGpuPathCheck:
         # loudly so the user knows it's not going to persist.
         from cortex import doctor
 
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ()
-        )
-        monkeypatch.setattr(
-            doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "0"}
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ())
+        monkeypatch.setattr(doctor, "_live_ollama_env", lambda: {"OLLAMA_NUM_GPU": "0"})
 
         result = doctor.check_gpu_path(settings)
         assert result.status is Status.WARN
@@ -765,9 +744,7 @@ class TestGpuPathCheck:
         from cortex import doctor
 
         plist = self._candidate_for(tmp_path, "plist", {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
         monkeypatch.setattr(doctor, "_live_ollama_env", lambda: None)
 
         result = doctor.check_gpu_path(settings)
@@ -788,12 +765,8 @@ class TestGpuPathCheck:
         from cortex import doctor
 
         plist = self._candidate_for(tmp_path, "plist", {"OLLAMA_FLASH_ATTENTION": "1"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
-        monkeypatch.setattr(
-            doctor, "_live_ollama_env", lambda: {"OLLAMA_FLASH_ATTENTION": "1"}
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
+        monkeypatch.setattr(doctor, "_live_ollama_env", lambda: {"OLLAMA_FLASH_ATTENTION": "1"})
 
         result = doctor.check_gpu_path(settings)
         assert result.status is Status.PASS
@@ -873,9 +846,7 @@ class TestInferencePathCheck:
         from cortex import doctor
 
         self._binary_present(monkeypatch)
-        self._fake_ollama_ps(
-            monkeypatch, "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL\n"
-        )
+        self._fake_ollama_ps(monkeypatch, "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL\n")
         result = doctor.check_inference_path(settings)
         assert result.status is Status.PASS
         assert "no models" in result.message
@@ -941,9 +912,7 @@ class TestInferencePathCheck:
 
         plist = tmp_path / "override.plist"
         _write_plist(plist, {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
         self._binary_present(monkeypatch)
         self._fake_ollama_ps(
             monkeypatch,
@@ -965,9 +934,7 @@ class TestInferencePathCheck:
 
         plist = tmp_path / "override.plist"
         _write_plist(plist, {"OLLAMA_NUM_GPU": "0"})
-        monkeypatch.setattr(
-            doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),)
-        )
+        monkeypatch.setattr(doctor, "OLLAMA_DAEMON_PATHS", ((plist, "plist"),))
         self._binary_present(monkeypatch)
         self._fake_ollama_ps(
             monkeypatch,
