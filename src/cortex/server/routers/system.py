@@ -108,7 +108,7 @@ async def status() -> StatusResponse:
 
 @router.post("/reindex")
 async def reindex(req: ReindexRequest) -> dict[str, object]:
-    from cortex.index.pipeline import IndexReport
+    from cortex.ingest.pipeline import IndexReport
 
     rt = get_runtime()
 
