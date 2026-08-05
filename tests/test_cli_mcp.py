@@ -179,7 +179,13 @@ class TestCLI:
 
     def test_index_then_search(self, vault: Path, tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
         monkeypatch.setenv("CORTEX_DATA_DIR", str(tmp_path / "data"))
-        indexed = runner.invoke(app, ["index", "--vault", str(vault), "--offline"])
+        # --ignore-thermal keeps this test independent of the developer's
+        # actual battery / chassis state, which pmset reports faithfully on
+        # macOS but is irrelevant to whether `cortex index` works.
+        indexed = runner.invoke(
+            app,
+            ["index", "--vault", str(vault), "--offline", "--ignore-thermal"],
+        )
         assert indexed.exit_code == 0, indexed.stdout
         assert "indexed" in indexed.stdout
 
@@ -204,6 +210,31 @@ class TestCLI:
         result = runner.invoke(app, ["graph", "--vault", str(vault), "--offline"])
         assert result.exit_code == 0
         assert "Edges" in result.stdout
+
+
+class TestRuntimeConstruction:
+    """Lock in test-mode behaviour so a refactor can't silently regress."""
+
+    def test_in_memory_runtime_does_not_wire_a_governor_into_the_pipeline(
+        self, settings: Settings
+    ) -> None:
+        # Tests must not depend on the developer's actual battery / chassis
+        # state. The pipeline-level thermal gate is what kept failing tests on
+        # a low-battery laptop, so build_runtime(..., in_memory=True) deliberately
+        # leaves the pipeline governor-less. Pin this so a future refactor of
+        # IndexPipeline's constructor cannot silently re-introduce the gate.
+        from cortex.runtime import build_runtime
+
+        rt = build_runtime(settings=settings, offline=True, in_memory=True)
+        assert rt.pipeline.governor is None
+        # The runtime-level governor is also absent in test mode, so callers
+        # like vault_status() must learn to render 'unavailable' rather than
+        # crash. We test that contract in TestStatusTool below.
+        assert rt.governor is None
+        # Sanity: report.scanned still flows and indexing is non-paused.
+        report = rt.pipeline.run()
+        assert report.paused_for_thermal is False
+        assert report.scanned >= 1
 
 
 class TestSettingsLoading:

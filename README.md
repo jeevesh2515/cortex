@@ -137,9 +137,36 @@ cortex status                         # index size, thermal state
 cortex providers                      # who may see private content, and why
 cortex graph --note "Retrieval.md"    # inspect wikilinks
 cortex watch                          # run continuously
+cortex serve                          # local web app + voice + chat UI
 ```
 
 Everything works without a model configured — pass `--offline` to use a deterministic hashing embedder. Useful for trying the pipeline before pulling gigabytes.
+
+### Talk to it in the browser — `cortex serve`
+
+A Vite-built React app runs alongside the Python backend on one port. Streaming
+chat, citations, voice input (browser Web Speech API), TTS read-aloud, a vault
+search sidebar and a memory-folder browser — all in one window, all local.
+
+```bash
+uv pip install -e ".[server]"            # adds fastapi + uvicorn
+cd frontend && npm install && npm run build  # one-time, builds the SPA
+cd .. && cortex serve                    # opens http://127.0.0.1:7331
+```
+
+The mobile layout collapses the left rail into a slide-in drawer and pins a
+tab bar to the bottom of the viewport; on desktop the sidebar stays put.
+
+**Voice.** Hold the mic button (or type) and the browser's Web Speech API
+transcribes in real time. A "Read aloud" button on each assistant message
+plays it back via the browser's `SpeechSynthesis` with the voice you pick in
+Settings. Both rely on browser-native engines; for fully local STT/TTS, route
+audio to a local Whisper / Piper daemon on the server and we'll hook them up.
+
+**Privacy, in the UI.** Every assistant message carries a provider chip
+(`groq · no-train`, `nvidia · no-train`, `openrouter · zdr`, etc.) so you can
+see at a glance where each answer came from. The "Local only" toggle on the
+composer forces the request to stay on-device.
 
 ### Connect it to Antigravity
 
@@ -313,7 +340,7 @@ uv pip install -e ".[dev,all]"
 make check      # ruff + mypy --strict + pytest
 ```
 
-465 tests, mypy strict, zero lint warnings. The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one.
+The privacy gate is tested as a security boundary — including the subtle leak where a preferred provider fails and a naive chain falls through to a training one. The HTTP surface (`src/cortex/server/`) is covered by `tests/test_server.py` using httpx against the ASGI app directly, so the chat SSE event sequence is asserted in CI.
 
 Architecture decisions and their tradeoffs are recorded in [`docs/adr/`](docs/adr/).
 
