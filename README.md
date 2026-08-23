@@ -94,6 +94,24 @@ $ cortex providers
 
 ---
 
+## ⚡ Quickstart (Zero-Setup Demo)
+
+Try Cortex immediately with the included sample knowledge vault:
+
+```bash
+# 1. Clone and enter repo
+git clone https://github.com/jeevesh2515/cortex.git
+cd cortex
+
+# 2. Install editable package
+pip install -e .
+
+# 3. Query sample vault using offline deterministic embedder
+cortex query "What are the notes on pectin and fermentation?" --offline
+```
+
+---
+
 ## Install
 
 Requires Python 3.11+ and [Ollama](https://ollama.com) for local models.
