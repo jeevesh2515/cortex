@@ -22,11 +22,11 @@ from cortex.memory import MemoryWriter
 from cortex.retrieve.engine import RetrievalEngine
 from cortex.retrieve.graph import LinkGraph
 from cortex.retrieve.rerank import build_reranker
-from cortex.thermal.governor import ThermalGovernor, default_probe
+from cortex.thermal.governor import StaticProbe, SystemProbe, ThermalGovernor, default_probe
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["Runtime", "build_runtime"]
+__all__ = ["Runtime", "StaticProbe", "build_runtime"]
 
 
 @dataclass(slots=True)
@@ -112,6 +112,7 @@ def build_runtime(
     settings: Settings | None = None,
     offline: bool = False,
     in_memory: bool = False,
+    probe: SystemProbe | None = None,
 ) -> Runtime:
     """Assemble a Runtime from configuration.
 
@@ -124,7 +125,10 @@ def build_runtime(
     catalog = Catalog(":memory:" if in_memory else settings.db_path)
     store = MemoryStore() if in_memory else _build_store(settings)
     embedder = _build_embedder(settings, offline=offline)
-    governor = ThermalGovernor(probe=default_probe(), config=settings.governor)
+    governor = ThermalGovernor(
+        probe=probe if probe is not None else default_probe(),
+        config=settings.governor,
+    )
 
     providers = build_chat_providers(settings.providers)
     router = Router(providers)
