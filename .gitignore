@@ -20,3 +20,7 @@ cortex.toml
 .DS_Store
 .idea/
 .vscode/
+
+# Training raw data (do not commit — CC BY-SA derived content)
+training/raw/
+training/*.jsonl

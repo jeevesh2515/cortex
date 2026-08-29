@@ -1,0 +1,68 @@
+{
+  "milestone": "3B-1",
+  "generated_at": "2026-08-29T13:32:47.128171+00:00",
+  "dry_run": false,
+  "schema_version": "1.0.0",
+  "split_policy": "document-disjoint: SHA-256(doc_id)[0] < 52 \u2192 dev (~20%), else \u2192 train (~80%). An example is accepted into split X only when ALL its positive docs hash to X and none appear in the opposing split's committed doc set.",
+  "eval_isolation": {
+    "eval_positive_ids_count": 11,
+    "eval_queries_count": 25,
+    "rules_enforced": [
+      "L-1",
+      "L-2",
+      "L-4",
+      "L-6",
+      "DOC-DISJOINT"
+    ]
+  },
+  "sources": {
+    "hotpot_train_v1.1.json": {
+      "url": "https://huggingface.co/datasets/hotpotqa/hotpot_qa (distractor, train split)",
+      "licence": "CC-BY-SA-4.0",
+      "citation": "Yang et al. (2018). HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering. EMNLP 2018. arXiv:1809.09600",
+      "sha256": "a37be753900a79ddcdf4c680d6b6acfcdbba71a8777d773dc0240858c76530a9"
+    },
+    "hotpot_dev_distractor_v1.json": {
+      "url": "https://huggingface.co/datasets/hotpotqa/hotpot_qa (distractor, validation split)",
+      "licence": "CC-BY-SA-4.0",
+      "citation": "Yang et al. (2018). HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering. EMNLP 2018. arXiv:1809.09600",
+      "sha256": "4fc80df8f109537af8d6ff4736ad2e658bcc9e038da3a23a96bff6482f66a5f1"
+    }
+  },
+  "train": {
+    "output_file": "training/train.jsonl",
+    "sha256": "c22c7dbd13b182da7bc2bb0bf5d79eae7c543d6410864000f1f45a2a20e9e0ae",
+    "count": 300,
+    "unique_positive_docs": 300,
+    "rejection_stats": {
+      "total_seen": 90447,
+      "total_accepted": 300,
+      "rejected_no_supporting_docs": 0,
+      "rejected_no_hard_negatives": 3,
+      "rejected_split_conflict": 144,
+      "rejected_eval_query_leak_L1": 0,
+      "rejected_eval_doc_leak_L2_L4": 0,
+      "rejected_schema_error": 0,
+      "rejected_cap_reached": 89988
+    }
+  },
+  "dev": {
+    "output_file": "training/dev.jsonl",
+    "sha256": "209cdc44ca76de38c36592a425c0adc9d32aba009eceb4d4c8e0bfa6aaa2746b",
+    "count": 50,
+    "unique_positive_docs": 50,
+    "rejection_stats": {
+      "total_seen": 7405,
+      "total_accepted": 50,
+      "rejected_no_supporting_docs": 0,
+      "rejected_no_hard_negatives": 7,
+      "rejected_split_conflict": 318,
+      "rejected_eval_query_leak_L1": 0,
+      "rejected_eval_doc_leak_L2_L4": 0,
+      "rejected_schema_error": 0,
+      "rejected_cap_reached": 6374
+    }
+  },
+  "document_overlap_train_dev": [],
+  "leakage_violations": []
+}

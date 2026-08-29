@@ -16,8 +16,8 @@
 | BEIR / SciFact (abstracts/corpus.jsonl) | Training positives | **REJECTED** | ODC-By 1.0 (database rights only); underlying paper copyright not cleared |
 | **PKM synthetic pairs** | Training positives | **APPROVED** (pending Approval B already granted) | MIT licence; project-owned; no third-party content |
 | MS MARCO | Hard negatives only | **REJECTED** | Microsoft non-commercial research terms; explicitly excludes commercial products |
-| **HotpotQA** | Proposed replacement | **CONDITIONALLY APPROVED** | CC BY-SA 4.0; commercial use permitted; share-alike creates model-weights uncertainty |
-| **Natural Questions (NQ-open Wikipedia passages)** | Proposed replacement | **APPROVED with attribution** | CC BY-SA 3.0 (Wikipedia source); widely accepted for embedding fine-tuning |
+| **HotpotQA** | Proposed replacement | **APPROVED — 3B-1 pilot** | CC BY-SA 4.0; share-alike implications for weights unresolved; no distribution of weights or data without separate review |
+| **Natural Questions (NQ-open Wikipedia passages)** | Proposed replacement | **PENDING — canonical-source audit required** | NQ-Open questions/answers are not a passage retrieval corpus; DPR/Wikipedia passage licence needs separate verification |
 
 **Corrected source plan for Approval A**: Replace NF-Corpus and SciFact with
 HotpotQA (CC BY-SA 4.0) and NQ-open passages (CC BY-SA 3.0). MS MARCO
@@ -216,53 +216,52 @@ labels from non-commercially-licensed data. Removed from the corpus plan.
 | Training on derived QD pairs? | **Yes** |
 | Creating and publishing QD pairs? | Yes, with attribution and CC BY-SA 4.0 licence on the derived dataset |
 
-#### 3.1.2 Share-Alike Risk Assessment
+#### 3.1.2 Share-Alike and Model-Weights Obligations
 
 The share-alike clause requires derivatives to be released under CC BY-SA 4.0
-or a compatible licence. For model weights, there is unresolved legal
-debate on whether trained weights are "derivative works" of training data.
-**Mitigation**: This project's embedding model weights are not distributed
-publicly (the model runs locally on the user's machine, inside their own
-Cortex install). Internal training does not trigger distribution-based
-share-alike obligations.
+or a compatible licence. Whether trained model weights constitute a
+"derivative work" of training data is **a legally unresolved question** under
+current AI copyright law; no settled global consensus exists.
 
-**Decision**: Conditionally approved. The training dataset itself (QD pairs
-derived from HotpotQA) must be released under CC BY-SA 4.0 if distributed.
-Model weights used internally are not subject to distribution obligations.
+**Policy**: Licensing implications for model weights derived from this data
+are unresolved. This project will not distribute trained weights or derived
+datasets without a separate, explicit licensing review.
+
+**Decision**: Approved for 3B-1 pilot (internal use, no distribution).
+The training QD-pair dataset must carry CC BY-SA 4.0 attribution if ever
+distributed externally.
 
 ---
 
-### 3.2 Natural Questions (NQ-Open, Wikipedia passages)
+### 3.2 Natural Questions (NQ-Open, Wikipedia passages) — PENDING AUDIT
+
+> **[STATUS: PENDING]** A separate canonical-source and licence audit is
+> required before NQ-Open may be used. The NQ-Open dataset provides
+> questions and short answers extracted from Google Search logs; it is NOT
+> itself a passage retrieval corpus. The DPR Wikipedia passage corpus is a
+> separate artefact (Karpukhin et al. 2020) with its own provenance and
+> licence chain. Both must be audited independently before use.
 
 | Field | Value |
 |---|---|
 | Canonical URL | https://ai.google.com/research/NaturalQuestions |
 | Repository | https://github.com/google-research-datasets/natural-questions |
 | Paper | Kwiatkowski et al. 2019, TACL |
-| Licence | **CC BY-SA 3.0** (inherited from Wikipedia source text) |
-| Queries | Google Search queries — covered by Google's NQ terms |
-| Corpus passages | Wikipedia text — CC BY-SA 3.0 |
-| Size (passage retrieval) | ~21M Wikipedia passages; NQ-open QA pairs ~58K train / 3.6K dev |
-| Version recommended | NQ-open v1.0 (Wikipedia DPR splits) |
+| Queries licence | Google's NQ Terms — scope unclear for training |
+| DPR Wikipedia passage corpus | Karpukhin et al. 2020; passages from Wikipedia dump — separate audit needed |
+| Wikipedia text licence | CC BY-SA 3.0 (but passage segmentation, IDs, and annotation layer have own provenance) |
+| DPR passage version | 21M passages from Dec 2018 Wikipedia dump — canonical URL and hash not yet recorded |
 
-#### 3.2.1 Licence Analysis
+#### 3.2.1 Open Questions Blocking Approval
 
-| Question | Answer |
-|---|---|
-| Commercial use of Wikipedia passages? | **Yes** — CC BY-SA 3.0 |
-| Commercial use of query annotations? | **Yes** — Google NQ terms permit research and commercial use (unlike MS MARCO) |
-| Attribution required? | **Yes** — cite Kwiatkowski et al. 2019; Wikipedia attribution |
-| Share-alike obligation? | **Yes** — CC BY-SA 3.0; same analysis as HotpotQA |
-| Creating derived QD pairs? | **Yes** |
-| Publishing derived QD pairs? | Yes, under CC BY-SA 3.0/4.0 with attribution |
+1. Are Google Search queries in NQ-Open licenced for commercial AI training?
+2. What is the canonical download URL and SHA-256 for the DPR Wikipedia passage dump?
+3. Does the DPR passage segmentation layer introduce additional licence obligations?
+4. Is there a version-locked, verifiable release of the DPR passages?
 
-**Decision**: Approved. The Wikipedia passage corpus is the most widely used
-source for embedding retrieval fine-tuning and is considered industry-standard.
-Attribution and share-alike must be documented.
-
-**Scope for pilot**: Use the NQ-open DPR Wikipedia passage splits (not the
-full 21M passage corpus). Limit to the 500–1,000 training example target
-from Approval C.
+**Decision**: **PENDING** — do not download or use NQ/DPR passages until
+a completed canonical-source audit is recorded in this document.
+This source is deferred to Milestone 3B-2 or later.
 
 ---
 
@@ -270,16 +269,16 @@ from Approval C.
 
 The following replaces the plan proposed in `eval/AUDIT.md §5`:
 
-| Source | Status | Licence | Size (pilot) | Use |
+| Source | Status | Licence | Size (3B-1 pilot) | Use |
 |---|---|---|---|---|
 | ~~BEIR NF-Corpus~~ | **Rejected** | Custom restrictive | — | Removed |
 | ~~BEIR SciFact~~ | **Rejected** | ODC-By + unclear copyright | — | Removed |
 | ~~MS MARCO~~ | **Rejected** | Non-commercial only | — | Removed |
-| **HotpotQA** (Wikipedia passages) | Conditional approval proposed | CC BY-SA 4.0 | ~300 training pairs | Training positives + hard negatives |
-| **NQ-open** (Wikipedia DPR passages) | Approval proposed | CC BY-SA 3.0 | ~200 training pairs | Training positives + hard negatives |
-| **PKM synthetic pairs** | Approved (Approval B) | MIT (project) | ~500 pairs | Training positives |
+| **HotpotQA** | **Approved — 3B-1** | CC BY-SA 4.0 | ≤300 train + ≤50 dev | Training positives + hard negatives |
+| ~~NQ-open / DPR passages~~ | **Pending audit** | TBD | — | Deferred to 3B-2 |
+| **PKM synthetic pairs** | Approved (Approval B) | MIT (project) | Deferred to 3B-2 | Training positives |
 
-Total pilot size: ~1,000 training + 100 dev (from HotpotQA/NQ dev splits).
+3B-1 pilot size: ≤300 train + ≤50 dev from HotpotQA only.
 
 ### 4.1 Attribution Obligations
 
@@ -300,26 +299,27 @@ PKM Synthetic: Project-generated synthetic pairs.
 Licence: MIT
 ```
 
-### 4.2 Share-Alike Obligations on Derived Dataset
+### 4.2 Distribution Policy for Derived Dataset and Model Weights
 
-Any derived training dataset file (JSONL of QD pairs from HotpotQA or NQ)
+Any derived training dataset file (JSONL of QD pairs from HotpotQA)
 that is distributed externally must carry a CC BY-SA 4.0 licence and the
-above attribution. Internal use only (no external distribution) does not
-trigger the share-alike distribution clause.
+above attribution.
+
+Licensing implications for model weights trained on this data are unresolved.
+This project will not distribute trained weights or derived datasets without
+a separate, explicit licensing review. Internal use only for the 3B-1 pilot.
 
 ---
 
-## 5. What Remains Open (Approval A)
+## 5. Approval Status
 
-The user must explicitly approve or reject the **corrected source plan** in §4:
-
-> **[APPROVAL A — REVISED]**
-> Approve use of HotpotQA (CC BY-SA 4.0) and Natural Questions NQ-open
-> (CC BY-SA 3.0, Wikipedia passages) as replacement training sources,
-> with attribution in `training/SOURCES.md` and understanding that any
-> externally distributed derived QD-pair dataset must carry CC BY-SA 4.0.
-> Confirm that NF-Corpus, SciFact, and MS MARCO are permanently rejected
-> for this project.
+| Approval | Status | Scope |
+|---|---|---|
+| **Approval A (HotpotQA)** | **Granted — 3B-1 pilot** | ≤300 train + ≤50 dev; no weight/data distribution |
+| **Approval A (NQ-open/DPR)** | **Pending** — canonical-source audit required | Deferred to 3B-2 |
+| **Approval B** | Granted | ≤50% synthetic per category; provenance in `notes` |
+| **Approval C** | Granted | ≤500 train + ≤100 dev pilot |
+| **Approval D** | Granted (with correction) | eval/baseline_dense.* and eval/vault/ immutable v1; future eval as new versioned suite |
 
 No data will be downloaded until this revised Approval A is received.
 
