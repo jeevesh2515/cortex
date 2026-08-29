@@ -374,7 +374,13 @@ def build_server(tools: CortexTools) -> Any:
             TextContent,
             Tool,
         )
-    except ImportError as exc:  # pragma: no cover
+Uses ``MCPServer`` (the MCP 2.0 high-level API). A single ``dispatch``
+    wrapper is registered for each tool name so the JSON-RPC routing stays in
+    ``CortexTools.dispatch`` rather than being duplicated here.
+    """
+    try:
+        from mcp.server.mcpserver import MCPServer
+        from mcp.types import TextContent    except ImportError as exc:  # pragma: no cover
         raise ImportError(
             "MCP support is not installed. Install with: pip install 'cortex-brain[mcp]'"
         ) from exc
@@ -408,7 +414,23 @@ def build_server(tools: CortexTools) -> Any:
         return CallToolResult(
             content=[TextContent(type="text", text=json.dumps(payload, indent=2, default=str))]
         )
+server = MCPServer("cortex")
 
+    for spec in TOOL_DEFINITIONS:
+        _name: str = spec["name"]  # type: ignore[assignment]
+        _desc: str = spec["description"]  # type: ignore[assignment]
+
+        def _make_handler(
+            tool_name: str,
+        ) -> Any:
+            async def _handler(**kwargs: Any) -> list[TextContent]:
+                payload = tools.dispatch(tool_name, kwargs)
+                return [TextContent(type="text", text=json.dumps(payload, indent=2, default=str))]
+
+            _handler.__name__ = tool_name
+            return _handler
+
+        server.add_tool(_make_handler(_name), name=_name, description=_desc)
     return Server(
         "cortex",
         on_list_tools=_list_tools,
@@ -446,13 +468,7 @@ def run_stdio(
     tools = CortexTools(runtime)
     server = build_server(tools)
 
-    async def _serve() -> None:
-        from mcp.server.stdio import stdio_server
-
-        async with stdio_server() as (read_stream, write_stream):
-            await server.run(read_stream, write_stream, server.create_initialization_options())
-
     try:
-        asyncio.run(_serve())
+        asyncio.run(server.run_stdio_async())
     finally:
         runtime.close()

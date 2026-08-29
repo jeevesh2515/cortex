@@ -1,0 +1,40 @@
+{
+  "milestone": "3C",
+  "dataset_id": "cortex-pkm-synthetic-v1",
+  "generated_at": "2026-08-29T14:18:41.603538+00:00",
+  "generator_model": "qwen3:4b",
+  "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+  "prompt_version": "pkm-synth-v1.0",
+  "review_status": "unreviewed",
+  "train_count": 200,
+  "dev_count": 50,
+  "train_docs": [
+    "synthetic_seed/astrophotography/sensor_read_noise.md",
+    "synthetic_seed/audio_engineering/nyquist_sampling.md",
+    "synthetic_seed/audio_engineering/subtractive_synthesis.md",
+    "synthetic_seed/biomechanics/ergonomic_keyboards.md",
+    "synthetic_seed/coffee_science/espresso_extraction.md",
+    "synthetic_seed/coffee_science/maillard_roasting.md",
+    "synthetic_seed/cryptography/elliptic_curve_diffie_hellman.md",
+    "synthetic_seed/cryptography/zero_knowledge_snarks.md",
+    "synthetic_seed/database_internals/bloom_filters.md",
+    "synthetic_seed/database_internals/lsm_trees.md",
+    "synthetic_seed/distributed_systems/raft_consensus.md",
+    "synthetic_seed/distributed_systems/vector_clocks.md",
+    "synthetic_seed/history_of_computing/xerox_parc_gui.md",
+    "synthetic_seed/horticulture/mycorrhizal_networks.md",
+    "synthetic_seed/horticulture/soil_cation_exchange.md",
+    "synthetic_seed/urban_ecology/bioswale_hydrology.md"
+  ],
+  "dev_docs": [
+    "synthetic_seed/cognitive_science/dual_coding_theory.md",
+    "synthetic_seed/cryptography/post_quantum_lattice.md",
+    "synthetic_seed/history_of_computing/unix_philosophy.md",
+    "synthetic_seed/microeconomics/vickrey_auctions.md"
+  ],
+  "document_overlap": [],
+  "leakage_violations": [],
+  "sha256_train": "8f7e912bacebb226cf9413f49ea6e6ca51fa33979144e46526aa9bb5da5d4ec6",
+  "sha256_dev": "dff29c7c7f916432a0d4d0619afea46774c04471da47e590d8817ea1d75b3f60",
+  "sha256_review_pack": "dc65e672f8ce6f36571761fe96cbc0cb5cee97639c6258d2ab3c9c22909bec0f"
+}

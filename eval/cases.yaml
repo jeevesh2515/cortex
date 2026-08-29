@@ -1,0 +1,166 @@
+# Cortex Retrieval Quality Evaluation Dataset
+version: "1.0"
+dataset: "cortex-eval-v1"
+provenance: >
+  Synthetic domain-grounded benchmark fixture for Cortex hybrid retrieval,
+  constructed from representative personal knowledge vault topics (software architecture,
+  RAG indexing, Apple Silicon thermal policy, food chemistry, and temporal logs).
+limitations: >
+  Small-scale (25 queries across 11 notes); focused on deterministic regression testing,
+  component ablation, and dense/hybrid ranking calibration. Not intended for macro web search evaluation.
+
+cases:
+  # --- Core Retrieval & Architecture ---
+  - id: "retrieval_01_hybrid_rrf"
+    query: "how does hybrid retrieval fuse dense vectors with bm25"
+    expect: ["Retrieval.md"]
+    category: "hybrid_core"
+    rationale: "Direct architectural query on reciprocal rank fusion combining dense and lexical search."
+
+  - id: "retrieval_02_embeddings_concept"
+    query: "what is semantic vector similarity in continuous space"
+    expect: ["Embeddings.md"]
+    category: "dense_semantic"
+    rationale: "Tests semantic retrieval of embedding concepts without requiring exact keyword matches."
+
+  - id: "retrieval_03_lancedb_storage"
+    query: "why use lancedb instead of a server vector database"
+    expect: ["Vector Databases.md"]
+    category: "lexical_exact"
+    rationale: "Tests retrieval for on-disk embedded Apache Arrow storage rationale."
+
+  - id: "retrieval_04_thermal_fanless"
+    query: "how does cortex prevent macbook air from getting hot during indexing"
+    expect: ["Thermal Management.md"]
+    category: "dense_semantic"
+    rationale: "Evaluates thermal governor policy of yielding background backfill to interactive queries."
+
+  - id: "retrieval_05_graph_expansion"
+    query: "how does wikilink traversal find second order context"
+    expect: ["Retrieval.md"]
+    category: "wikilink_graph"
+    rationale: "Tests retrieval of note describing graph link traversal."
+
+  # --- Baking & Food Chemistry ---
+  - id: "baking_01_starter_feeding"
+    query: "how often should I feed the sourdough starter and bulk ferment"
+    expect: ["Sourdough.md"]
+    category: "lexical_exact"
+    rationale: "Tests exact keyword and phrase matching for sourdough feeding cadence."
+
+  - id: "baking_02_gluten_matrix"
+    query: "what proteins form the viscoelastic gluten structure in flour"
+    expect: ["Flour Chemistry.md"]
+    category: "dense_semantic"
+    rationale: "Tests retrieval of glutenin and gliadin composition in flour."
+
+  - id: "baking_03_amylase_enzymes"
+    query: "alpha-amylase enzyme starch breakdown into maltose"
+    expect: ["Flour Chemistry.md"]
+    category: "lexical_exact"
+    rationale: "Tests technical biochemical terminology extraction and matching."
+
+  - id: "biochem_01_fermentation_kinetics"
+    query: "polysaccharide breakdown and metabolic pathways lowering pH"
+    expect: ["Fermentation Chemistry.md"]
+    category: "dense_semantic"
+    rationale: "Tests retrieval of biochemical fermentation pathways."
+
+  - id: "biochem_02_pectin_esterification"
+    query: "galacturonic acid methyl esterification and gelling properties"
+    expect: ["Pectin Chains.md"]
+    category: "lexical_exact"
+    rationale: "Tests highly specific botanical polysaccharide descriptions."
+
+  - id: "biochem_03_pectinase_fruit"
+    query: "what enzymes break down cell walls during fruit ripening"
+    expect: ["Pectin Chains.md", "Fermentation Chemistry.md"]
+    category: "multi_topic"
+    rationale: "Tests cross-cutting queries where both pectin and fermentation notes are relevant."
+
+  - id: "baking_04_bread_fermentation_link"
+    query: "how sourdough fermentation relates to grain flour enzymes"
+    expect: ["Sourdough.md", "Flour Chemistry.md"]
+    category: "multi_topic"
+    rationale: "Tests multi-document relevance linking bread baking to flour chemistry."
+
+  # --- Temporal & Daily Notes ---
+  - id: "temporal_01_aug_1_planning"
+    query: "what did I decide on 2026-08-01 about wikilink graphs"
+    expect: ["daily/2026-08-01.md"]
+    category: "temporal_query"
+    rationale: "Tests temporal date filtering and extraction on daily notes."
+
+  - id: "temporal_02_aug_15_benchmarks"
+    query: "what metrics did I implement on 2026-08-15"
+    expect: ["daily/2026-08-15.md"]
+    category: "temporal_query"
+    rationale: "Tests daily note retrieval for evaluation metric work."
+
+  - id: "temporal_03_query_expansion_work"
+    query: "when did I work on local query expansion without llm"
+    expect: ["daily/2026-08-15.md"]
+    category: "dense_semantic"
+    rationale: "Tests semantic retrieval of engineering accomplishments recorded in logs."
+
+  # --- Distractor Resistance & Precision ---
+  - id: "distractor_01_sql_vs_vector"
+    query: "how do relational b-tree indexes compare to postgres sql query planning"
+    expect: ["Distractor Search.md"]
+    category: "distractor_resistance"
+    rationale: "Tests precision on classical relational database queries, avoiding vector notes."
+
+  - id: "distractor_02_vector_indexing_only"
+    query: "fast approximate nearest neighbor vector indexing on disk"
+    expect: ["Vector Databases.md"]
+    category: "distractor_resistance"
+    rationale: "Tests discrimination: should surface Vector Databases, not Relational Database Indexing."
+
+  # --- Paraphrased / Abstract Queries ---
+  - id: "paraphrase_01_keep_data_local"
+    query: "privacy guarantees for private vault notes never leaving computer"
+    expect: ["Retrieval.md"]
+    category: "dense_semantic"
+    rationale: "Evaluates conceptual understanding of local privacy invariant."
+
+  - id: "paraphrase_02_cpu_heat_throttling"
+    query: "pmset speed limit drops when mac heats up"
+    expect: ["Thermal Management.md"]
+    category: "dense_semantic"
+    rationale: "Tests hardware state monitoring concepts."
+
+  - id: "paraphrase_03_high_protein_flour"
+    query: "best flour protein percentage for sourdough baking"
+    expect: ["Flour Chemistry.md", "Sourdough.md"]
+    category: "multi_topic"
+    rationale: "Tests finding both the flour spec and the sourdough recipe."
+
+  - id: "paraphrase_04_qwen_embedding_speed"
+    query: "small dense embedding models with low latency and state of the art mteb"
+    expect: ["Embeddings.md"]
+    category: "dense_semantic"
+    rationale: "Evaluates model selection rationale in embeddings documentation."
+
+  - id: "paraphrase_05_calcium_binding_gels"
+    query: "calcium binding capacity in plant polysaccharides"
+    expect: ["Pectin Chains.md"]
+    category: "dense_semantic"
+    rationale: "Tests specialized biochemical property search."
+
+  - id: "paraphrase_06_wild_yeast_microbiology"
+    query: "lactic acid bacteria and wild yeast symbiosis"
+    expect: ["Sourdough.md", "Fermentation Chemistry.md"]
+    category: "multi_topic"
+    rationale: "Tests cross-domain biological concepts across notes."
+
+  - id: "paraphrase_07_bidirectional_links"
+    query: "why avoid heavy graphrag in favor of bidirectional obsidian links"
+    expect: ["daily/2026-08-01.md", "Retrieval.md"]
+    category: "wikilink_graph"
+    rationale: "Tests architectural decision retrieval across log and system doc."
+
+  - id: "paraphrase_08_incremental_hash_skipping"
+    query: "how content hashing skips unmodified files during re-indexing"
+    expect: ["daily/2026-08-15.md"]
+    category: "dense_semantic"
+    rationale: "Tests retrieval of content-hash gate rationale."

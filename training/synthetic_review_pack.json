@@ -1,0 +1,402 @@
+[
+  {
+    "training_id": "20a4989e5514bf51532b31ee077987706fdab43356eb9d17e8053913ef0e909f",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Find information regarding: Vector clock component-wise maximum algorithm rules",
+    "positive_id": "synthetic_seed/distributed_systems/vector_clocks.md#causal_ordering",
+    "positive_text": "Vector clocks maintain partial ordering of events in distributed systems without synchronized physical clocks. Each process i maintains a vector V of size N. Before executing an event, process i incre...",
+    "hard_negative_id": "synthetic_seed/distributed_systems/raft_consensus.md#log_compaction_snapshots",
+    "hard_negative_text": "To prevent logs from growing unbounded in Raft, state machine snapshots are periodically written to persistent storage, allowing log entries prior to ...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/distributed_systems/vector_clocks.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "0086040c5e583c60d3c8d1d1a057f70c5a25d7f3f98b7989636379b5524695b4",
+    "split": "train",
+    "category": "hybrid_core",
+    "query": "Find information regarding: espresso channeling WDT puck preparation density variance",
+    "positive_id": "synthetic_seed/coffee_science/espresso_extraction.md#channeling_and_puck_prep",
+    "positive_text": "Channeling occurs when high-pressure water (typically 6-9 bars) finds paths of least resistance through non-uniform coffee pucks. This causes localized over-extraction along the fissure alongside unde...",
+    "hard_negative_id": "synthetic_seed/distributed_systems/vector_clocks.md#concurrent_conflicts",
+    "hard_negative_text": "Two events A and B in a vector clock system are concurrent if neither vector dominates the other component-wise. When concurrent updates occur to the ...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/coffee_science/espresso_extraction.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "6543bf9906a6a9f2388746f2bb3389606e4a5db6a21c3f939c0bfccc4ac4be06",
+    "split": "dev",
+    "category": "dense_semantic",
+    "query": "What core design tenets define the Unix philosophy according to Doug McIlroy?",
+    "positive_id": "synthetic_seed/history_of_computing/unix_philosophy.md#modularity_and_text_streams",
+    "positive_text": "Formulated by Ken Thompson, Dennis Ritchie, and Doug McIlroy at Bell Labs, the Unix philosophy emphasizes: 'Write programs that do one thing and do it well. Write programs to work together. Write prog...",
+    "hard_negative_id": "synthetic_seed/cognitive_science/dual_coding_theory.md#multimedia_split_attention",
+    "hard_negative_text": "The split-attention effect occurs when instructional material forces learners to divide attention between physically separated text and diagram elemen...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/history_of_computing/unix_philosophy.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "9b31091b35b7c9b61d56de0540d3a136e289ecdf62e1ae8976bdf126516af7bb",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "Notes on: Why does swamping sensor read noise enable shorter sub-exposure stacking in astrophotography?",
+    "positive_id": "synthetic_seed/astrophotography/sensor_read_noise.md#swamp_factor_exposure",
+    "positive_text": "Sub-exposure length is optimized when sky background noise exceeds sensor read noise by a factor of 3x to 5x (known as swamping read noise). Once read noise is swamped, stacking N short exposures yiel...",
+    "hard_negative_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "hard_negative_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 t...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/astrophotography/sensor_read_noise.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "0f5ede493b1701d124d2685b9d8a9540c95e8acd4438319cc1942787f4f47083",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Find information regarding: ECDH scalar multiplication public point Curve25519 shared secret",
+    "positive_id": "synthetic_seed/cryptography/elliptic_curve_diffie_hellman.md#ecdh_scalar_mult",
+    "positive_text": "ECDH key agreement establishes a shared secret over an insecure channel. Alice chooses private scalar d_A and transmits public point Q_A = d_A * G on curve secp256k1 or Curve25519. Bob computes shared...",
+    "hard_negative_id": "synthetic_seed/cryptography/zero_knowledge_snarks.md#trusted_setup_ceremonies",
+    "hard_negative_text": "Traditional zk-SNARK protocols like Groth16 require a trusted setup ceremony to generate structured reference string (SRS) parameters. Multi-party com...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/cryptography/elliptic_curve_diffie_hellman.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "b678e97c6c0a16f53ec5d6867db5656b8494a04f234377f616c430ea9afa3f79",
+    "split": "train",
+    "category": "hybrid_core",
+    "query": "Notes on: aliasing foldback Nyquist oversampling delta-sigma ADC",
+    "positive_id": "synthetic_seed/audio_engineering/nyquist_sampling.md#aliasing_and_oversampling",
+    "positive_text": "When frequency components above the Nyquist frequency enter an analog-to-digital converter without proper filtering, they fold back into the audible spectrum as non-harmonic distortion known as aliasi...",
+    "hard_negative_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md#oscillators_and_harmonics",
+    "hard_negative_text": "Subtractive synthesis starts with harmonically rich waveforms generated by oscillators. A sawtooth wave contains all integer harmonics with amplitudes...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/audio_engineering/nyquist_sampling.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "4d3cf262cb479fdfa2cc447146c318dcca17e15d000da07e43201bc7be8b840d",
+    "split": "train",
+    "category": "hybrid_core",
+    "query": "Find information regarding: coffee roast RoR crash flick defect caramelization",
+    "positive_id": "synthetic_seed/coffee_science/maillard_roasting.md#rate_of_rise",
+    "positive_text": "Rate of Rise (RoR) measures the temperature increase rate of the bean probe in degrees per minute. A smoothly declining RoR curve avoids roasting defects: crashing RoR causes baked flavors due to stal...",
+    "hard_negative_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md#resonant_filters",
+    "hard_negative_text": "Voltage-controlled low-pass filters (VCF) sculpt timbre by attenuating frequencies above the cutoff frequency at rates typically of 12dB or 24dB per o...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/coffee_science/maillard_roasting.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "a0fc1a1d17d9fd5b2d6031fcabec41ccfa7dd09cba4e4a3ff65a402f39ad9ce8",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "astrophotography photon shot noise sky background read noise SNR",
+    "positive_id": "synthetic_seed/astrophotography/sensor_read_noise.md#noise_components",
+    "positive_text": "Deep-sky astrophotography SNR (signal-to-noise ratio) is governed by three primary noise sources: target photon shot noise (sqrt(Signal)), sky background light pollution shot noise (sqrt(Sky)), and se...",
+    "hard_negative_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md#hydraulic_filtration",
+    "hard_negative_text": "Bioswales are vegetated channels engineered to attenuate urban stormwater peak runoff velocities while filtering particulate pollutants, heavy metals,...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/astrophotography/sensor_read_noise.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "50652d74bdfc991d72db7f39e1577e01dc1ffce9690c4cef89bb3e325ef81e9e",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "bioswale stormwater hydraulic filtration phytoremediation runoff",
+    "positive_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md#hydraulic_filtration",
+    "positive_text": "Bioswales are vegetated channels engineered to attenuate urban stormwater peak runoff velocities while filtering particulate pollutants, heavy metals, and hydrocarbons. As water slowly infiltrates eng...",
+    "hard_negative_id": "synthetic_seed/astrophotography/sensor_read_noise.md#swamp_factor_exposure",
+    "hard_negative_text": "Sub-exposure length is optimized when sky background noise exceeds sensor read noise by a factor of 3x to 5x (known as swamping read noise). Once read...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "147fcb58f013fc3595e89e31975bcf18ec4fe2bc139d25aca89e70cf8f90a081",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Find information regarding: Bloom filter bit array k hash functions false negative zero",
+    "positive_id": "synthetic_seed/database_internals/bloom_filters.md#bloom_hashing_math",
+    "positive_text": "A Bloom filter is a space-efficient probabilistic data structure used to test set membership. An empty filter is a bit array of m bits, all set to 0. To add an element, it is hashed with k independent...",
+    "hard_negative_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "hard_negative_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 t...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/database_internals/bloom_filters.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "97026b2d0091e4fd96133b3dc67b76b383db770431ff4b95e3731bf8d855cd85",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Find information regarding: bioswale stormwater hydraulic filtration phytoremediation runoff",
+    "positive_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md#hydraulic_filtration",
+    "positive_text": "Bioswales are vegetated channels engineered to attenuate urban stormwater peak runoff velocities while filtering particulate pollutants, heavy metals, and hydrocarbons. As water slowly infiltrates eng...",
+    "hard_negative_id": "synthetic_seed/astrophotography/sensor_read_noise.md#swamp_factor_exposure",
+    "hard_negative_text": "Sub-exposure length is optimized when sky background noise exceeds sensor read noise by a factor of 3x to 5x (known as swamping read noise). Once read...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "a46c6f91f26066bfa38b88fa852f74af20eac679389eaa384387a3d2e0892510",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Raft candidate RequestVote RPC majority threshold",
+    "positive_id": "synthetic_seed/distributed_systems/raft_consensus.md#leader_election",
+    "positive_text": "In Raft, leader election begins when a follower's election timer expires without receiving heartbeats from the current leader. The follower transitions to candidate state, increments its currentTerm, ...",
+    "hard_negative_id": "synthetic_seed/horticulture/soil_cation_exchange.md#base_saturation_and_ph",
+    "hard_negative_text": "Base saturation is the percentage of CEC occupied by basic cations (calcium, magnesium, potassium, sodium) rather than acidic cations (hydrogen, alumi...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/distributed_systems/raft_consensus.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "64af7be14bbed2c4f668cc56db2284bf4d4111c814524891230acdf3db72225a",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "Find information regarding: Explain the four stages of an ADSR envelope in audio synthesizers",
+    "positive_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md#adsr_envelopes",
+    "positive_text": "ADSR envelope generators modulate parameters over time through Attack (time to peak), Decay (time to sustain level), Sustain (held amplitude level while key is pressed), and Release (time to return to...",
+    "hard_negative_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "hard_negative_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 t...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "f537727054993ee11e802dc54322015af8b3e174ace3c437f21718ad0d80ff94",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "How does keyboard tenting reduce forearm pronation and carpal tunnel pressure?",
+    "positive_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "positive_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 to 45\u00b0 angle) allows forearms to rest in a neutral ...",
+    "hard_negative_id": "synthetic_seed/coffee_science/maillard_roasting.md#rate_of_rise",
+    "hard_negative_text": "Rate of Rise (RoR) measures the temperature increase rate of the bean probe in degrees per minute. A smoothly declining RoR curve avoids roasting defe...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "7c04f3e831fee2470e9b578df568736c69fa59e938765e0c63812b36b654a8b0",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "How does leader election initiate in the Raft consensus protocol?",
+    "positive_id": "synthetic_seed/distributed_systems/raft_consensus.md#leader_election",
+    "positive_text": "In Raft, leader election begins when a follower's election timer expires without receiving heartbeats from the current leader. The follower transitions to candidate state, increments its currentTerm, ...",
+    "hard_negative_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "hard_negative_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 t...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/distributed_systems/raft_consensus.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "62a286a60459f0943b278ada663e42981297393661d9072f690dae7bda7b7ccc",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "How do vegetated bioswales filter urban stormwater runoff and reduce peak flood velocity?",
+    "positive_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md#hydraulic_filtration",
+    "positive_text": "Bioswales are vegetated channels engineered to attenuate urban stormwater peak runoff velocities while filtering particulate pollutants, heavy metals, and hydrocarbons. As water slowly infiltrates eng...",
+    "hard_negative_id": "synthetic_seed/astrophotography/sensor_read_noise.md#noise_components",
+    "hard_negative_text": "Deep-sky astrophotography SNR (signal-to-noise ratio) is governed by three primary noise sources: target photon shot noise (sqrt(Signal)), sky backgro...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/urban_ecology/bioswale_hydrology.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "04a3262d25c2f96e593400afb7a8c757c6d5dad9c6654528c0780020c2a72d4c",
+    "split": "dev",
+    "category": "dense_semantic",
+    "query": "How do error reconciliation algorithms eliminate noise during lattice key decapsulation?",
+    "positive_id": "synthetic_seed/cryptography/post_quantum_lattice.md#reconciliation_noise",
+    "positive_text": "In lattice key encapsulation, public keys and ciphertexts contain intentional Gaussian noise terms added to inner products. During key decapsulation, the secret key reconstructs a noisy shared secret ...",
+    "hard_negative_id": "synthetic_seed/microeconomics/vickrey_auctions.md#second_price_incentive",
+    "hard_negative_text": "A Vickrey auction is a sealed-bid second-price auction where the highest bidder wins the item but pays the price equal to the second-highest bid. In p...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/cryptography/post_quantum_lattice.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "1afba16ac6dfa09ecb63dc9fd643c5777e799e0322359503618e538ea8d1683b",
+    "split": "train",
+    "category": "lexical_exact",
+    "query": "Bloom filter bit array k hash functions false negative zero",
+    "positive_id": "synthetic_seed/database_internals/bloom_filters.md#bloom_hashing_math",
+    "positive_text": "A Bloom filter is a space-efficient probabilistic data structure used to test set membership. An empty filter is a bit array of m bits, all set to 0. To add an element, it is hashed with k independent...",
+    "hard_negative_id": "synthetic_seed/biomechanics/ergonomic_keyboards.md#wrist_pronation_and_tenting",
+    "hard_negative_text": "Standard flat keyboards force forearm pronation, compressing the median nerve and radial artery in the carpal tunnel. Vertical keyboard tenting (15\u00b0 t...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/database_internals/bloom_filters.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "b1df03c79a4f0da7769417a81d137c7459066b403995f9a99b749e0a81ee12fc",
+    "split": "dev",
+    "category": "dense_semantic",
+    "query": "Summary and details: How does Allan Paivio's Dual-Coding Theory explain visual and verbal memory processing?",
+    "positive_id": "synthetic_seed/cognitive_science/dual_coding_theory.md#dual_channels",
+    "positive_text": "Allan Paivio's Dual-Coding Theory posits that the human cognitive architecture processes information through two separate, additive channels: a nonverbal visual channel (processing images and spatial ...",
+    "hard_negative_id": "synthetic_seed/cryptography/post_quantum_lattice.md#reconciliation_noise",
+    "hard_negative_text": "In lattice key encapsulation, public keys and ciphertexts contain intentional Gaussian noise terms added to inner products. During key decapsulation, ...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/cognitive_science/dual_coding_theory.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  },
+  {
+    "training_id": "f079cadc377e69b977f694ec19c2868400577ca328bbadc343d113243bada7ca",
+    "split": "train",
+    "category": "dense_semantic",
+    "query": "Notes on: How does filter resonance affect frequency response in low-pass filters?",
+    "positive_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md#resonant_filters",
+    "positive_text": "Voltage-controlled low-pass filters (VCF) sculpt timbre by attenuating frequencies above the cutoff frequency at rates typically of 12dB or 24dB per octave (2-pole vs 4-pole). Resonance increases feed...",
+    "hard_negative_id": "synthetic_seed/horticulture/mycorrhizal_networks.md#hyphal_network_defense",
+    "hard_negative_text": "Common mycelial networks (CMNs) connect root systems of multiple plants across forest floors. When a donor plant undergoes herbivore attack, it transm...",
+    "provenance": {
+      "generator_model": "qwen3:4b",
+      "generator_digest": "sha256:359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "prompt_version": "pkm-synth-v1.0",
+      "seed_doc_id": "synthetic_seed/audio_engineering/subtractive_synthesis.md",
+      "generation_date": "2026-08-29T15:00:00Z",
+      "review_status": "unreviewed"
+    },
+    "review_status": "unreviewed",
+    "reviewer_decision": "PENDING_HUMAN_REVIEW"
+  }
+]

@@ -18,8 +18,22 @@ from cortex.config import Settings, load_settings
 from cortex.mcp_server import TOOL_DEFINITIONS, CortexTools
 from cortex.models import DataPolicy
 from cortex.runtime import build_runtime
+from cortex.thermal.governor import PowerSource, Reading, StaticProbe
 
 runner = CliRunner()
+
+# Deterministic probe used wherever tests build a Runtime directly.
+# Simulates AC power with full battery so the ThermalGovernor never
+# classifies the state as CRITICAL or THROTTLED during test execution.
+_FULL_CHARGE_PROBE = StaticProbe(
+    Reading(
+        power=PowerSource.AC,
+        battery_percent=100,
+        cpu_speed_limit=100,
+        load_average=0.0,
+        cpu_count=4,
+    )
+)
 
 VAULT = {
     "Retrieval.md": (
@@ -52,7 +66,7 @@ def settings(vault: Path, tmp_path: Path) -> Settings:
 
 @pytest.fixture
 def tools(settings: Settings) -> CortexTools:
-    rt = build_runtime(settings=settings, offline=True, in_memory=True)
+    rt = build_runtime(settings=settings, offline=True, in_memory=True, probe=_FULL_CHARGE_PROBE)
     rt.pipeline.run()
     return CortexTools(rt)
 
@@ -138,7 +152,8 @@ class TestAskToolPrivacy:
                 policy=DataPolicy.TRAINS,
             )
         ]
-        rt = build_runtime(settings=settings, offline=True, in_memory=True)
+        _probe = _FULL_CHARGE_PROBE
+        rt = build_runtime(settings=settings, offline=True, in_memory=True, probe=_probe)
         rt.pipeline.run()
         out = CortexTools(rt).ask_notes("what did I write about sourdough?")
         assert out["error"] == "privacy_policy"
@@ -155,7 +170,8 @@ class TestAskToolPrivacy:
                 policy=DataPolicy.LOCAL,
             )
         ]
-        rt = build_runtime(settings=settings, offline=True, in_memory=True)
+        _probe = _FULL_CHARGE_PROBE
+        rt = build_runtime(settings=settings, offline=True, in_memory=True, probe=_probe)
         rt.pipeline.run()
         out = CortexTools(rt).ask_notes("sourdough")
         assert out["error"] == "provider_unavailable"
@@ -185,7 +201,8 @@ class TestCLI:
         indexed = runner.invoke(
             app,
             ["index", "--vault", str(vault), "--offline", "--ignore-thermal"],
-        )
+indexed = runner.invoke(
+            app, ["index", "--vault", str(vault), "--offline", "--ignore-thermal"]        )
         assert indexed.exit_code == 0, indexed.stdout
         assert "indexed" in indexed.stdout
 

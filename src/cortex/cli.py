@@ -467,38 +467,78 @@ def memory(
                 console.print(f"  [link={uri}]{path.stem}[/link]")
 
 
-@app.command()
-def bench(
-    config: ConfigOpt = None,
-    vault: VaultOpt = None,
-    offline: OfflineOpt = False,
-    cases: Annotated[
-        Path | None,
-        typer.Option("--cases", help="Ground-truth YAML/JSON of query -> expected notes."),
-    ] = None,
-    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 10,
-    reindex: Annotated[
-        bool, typer.Option("--reindex", help="Time a full cold index first.")
-    ] = False,
+def _run_eval_pipeline(
+    config: Path | None,
+    vault: Path | None,
+    offline: bool,
+    cases: Path | None,
+    top_k: int,
+    ablate_components: bool,
+    output_json: Path | None,
+    output_md: Path | None,
+    output_csv: Path | None,
+    compare: Path | None,
+    ignore_thermal: bool,
+    reindex: bool,
+    verbose: bool,
+    command_name: str,
 ) -> None:
-    """Measure retrieval quality and indexing throughput on your own vault.
-
-    Every default in Cortex was set from published findings on someone else's
-    corpus. Whether the graph, the reranker and query expansion actually earn
-    their latency on *your* notes is an empirical question, and this answers it.
-    """
+    import json as _json
     import time as _time
 
-    from cortex.bench import IndexBenchmark, ablate, load_cases
+    from cortex.bench import (
+        EvalReport,
+        IndexBenchmark,
+        ablate,
+        collect_environment,
+        compare_reports,
+        evaluate,
+        load_cases,
+    )
+
+    _setup_logging(verbose)
+
+    if cases is None:
+        default_case_file = Path("eval/cases.yaml")
+        if default_case_file.exists():
+            cases = default_case_file
+        else:
+            console.print(
+                "[yellow]No --cases file provided, so quality cannot be measured.[/yellow]\n"
+                "[dim]Pass a path with --cases (e.g. eval/cases.yaml) containing:\n\n"
+                "  - id: case_01\n"
+                "    query: what did I decide about chunking?\n"
+                "    expect: [Chunking Strategy.md]\n[/dim]"
+            )
+            raise typer.Exit(code=2)
+
+    loaded = load_cases(cases)
+    if not loaded:
+        err_console.print(f"[red]No usable cases in {cases}[/red]")
+        raise typer.Exit(code=2)
 
     with _runtime(config, vault, offline) as rt:
+        # If running dense evaluation with a real model, verify connectivity
+        if not offline:
+            try:
+                rt.embedder.embed(["healthcheck probe"])
+            except Exception as exc:
+                err_console.print(
+                    f"[red]Dense embedding provider failed:[/red] {exc}\n\n"
+                    "[yellow]Ollama or your embedding provider is unreachable.[/yellow]\n"
+                    "Options:\n"
+                    f"  1. Start Ollama and verify model '{rt.settings.embed_model}'.\n"
+                    "  2. Pass --offline for deterministic offline evaluation (CI-safe)."
+                )
+                raise typer.Exit(code=4) from exc
+
         if reindex:
-            with console.status("Cold index..."):
+            with console.status("Cold indexing..."):
                 started = _time.perf_counter()
-                report = rt.pipeline.run(full=True)
+                report = rt.pipeline.run(full=True, respect_thermal=not ignore_thermal)
                 cold = _time.perf_counter() - started
                 warm_started = _time.perf_counter()
-                rt.pipeline.run()
+                rt.pipeline.run(respect_thermal=not ignore_thermal)
                 warm = _time.perf_counter() - warm_started
 
             timing = IndexBenchmark(
@@ -514,46 +554,50 @@ def bench(
             table.add_row("Notes/sec", f"{timing.notes_per_second:.1f}")
             table.add_row("Chunks/sec", f"{timing.chunks_per_second:.1f}")
             table.add_row("No-op rescan", f"{timing.reindex_elapsed_s:.3f}s")
-            # Proves the content-hash gate is working. A low figure means
-            # something is defeating it and the vault is being re-embedded.
             table.add_row("Hash-gate speedup", f"{timing.speedup:.0f}x")
             console.print(table)
             console.print()
         else:
-            rt.pipeline.run()
+            rt.pipeline.run(respect_thermal=not ignore_thermal)
 
         rt.refresh_graph()
         engine = rt.engine()
 
-        if cases is None:
-            console.print(
-                "[yellow]No --cases file given, so quality cannot be measured.[/yellow]\n"
-                "[dim]Write ~20 real questions with the notes that should answer them:\n\n"
-                "  - query: what did I decide about chunking?\n"
-                "    expect: [Chunking Strategy.md]\n[/dim]"
-            )
-            raise typer.Exit()
-
-        loaded = load_cases(cases)
-        if not loaded:
-            err_console.print(f"[red]No usable cases in {cases}[/red]")
-            raise typer.Exit(code=2)
-
         with console.status(f"Evaluating {len(loaded)} cases..."):
-            result = ablate(engine, loaded, top_k=top_k)
+            if ablate_components:
+                ablation_res = ablate(engine, loaded, top_k=top_k)
+                base = ablation_res.baseline
+            else:
+                ablation_res = None
+                base = evaluate(engine, loaded, top_k=top_k)
 
-        base = result.baseline
-        summary = Table(title=f"Retrieval quality ({base.cases} cases)")
+        env = collect_environment(rt, command=f"cortex {command_name}", dataset_path=cases)
+        eval_report = EvalReport(
+            environment=env,
+            quality=base,
+            ablation=ablation_res,
+            dataset_info={
+                "path": str(cases),
+                "total_cases": len(loaded),
+                "version": env.dataset_version,
+            },
+        )
+
+        mode_str = "offline (deterministic)" if offline else f"dense ({rt.settings.embed_model})"
+        summary = Table(title=f"Retrieval Quality ({base.cases} cases · {mode_str})")
         summary.add_column("Metric")
         summary.add_column("Value", justify="right")
         for key, value in (
-            ("recall@5", f"{base.recall_at_5:.3f}"),
-            ("recall@10", f"{base.recall_at_10:.3f}"),
-            ("MRR", f"{base.mrr:.3f}"),
-            ("MAP", f"{base.map_score:.3f}"),
-            ("nDCG@10", f"{base.ndcg_at_10:.3f}"),
-            ("p50 latency", f"{base.p50_ms:.0f}ms"),
-            ("p95 latency", f"{base.p95_ms:.0f}ms"),
+            ("Recall@1", f"{base.recall_at_1:.4f}"),
+            ("Recall@5", f"{base.recall_at_5:.4f}"),
+            ("Recall@10", f"{base.recall_at_10:.4f}"),
+            ("MRR", f"{base.mrr:.4f}"),
+            ("MAP", f"{base.map_score:.4f}"),
+            ("nDCG@10", f"{base.ndcg_at_10:.4f}"),
+            ("p50 latency", f"{base.p50_ms:.1f}ms"),
+            ("p95 latency", f"{base.p95_ms:.1f}ms"),
+            ("p99 latency", f"{base.p99_ms:.1f}ms"),
+            ("Mean latency", f"{base.mean_ms:.1f}ms"),
         ):
             summary.add_row(key, value)
         console.print(summary)
@@ -581,13 +625,194 @@ def bench(
                 "[dim]Positive \u0394 means the component helps: disabling it lost that "
                 "much recall. Negative means it is hurting you -- turn it off.[/dim]"
             )
+if base.category_metrics:
+            cat_table = Table(title="Metrics by Category")
+            cat_table.add_column("Category")
+            cat_table.add_column("Count", justify="right")
+            cat_table.add_column("Recall@1", justify="right")
+            cat_table.add_column("Recall@5", justify="right")
+            cat_table.add_column("Recall@10", justify="right")
+            cat_table.add_column("MRR", justify="right")
+            cat_table.add_column("nDCG@10", justify="right")
+            for cat, m in sorted(base.category_metrics.items()):
+                cat_table.add_row(
+                    cat,
+                    str(int(m["count"])),
+                    f"{m['recall@1']:.3f}",
+                    f"{m['recall@5']:.3f}",
+                    f"{m['recall@10']:.3f}",
+                    f"{m['mrr']:.3f}",
+                    f"{m['ndcg@10']:.3f}",
+                )
+            console.print(cat_table)
 
+        if ablation_res is not None:
+            rows = ablation_res.deltas()
+            if rows:
+                ablation_table = Table(title="Ablation — what each component contributes")
+                ablation_table.add_column("Disabled")
+                ablation_table.add_column("Recall@5", justify="right")
+                ablation_table.add_column("Δ Recall@5", justify="right")
+                ablation_table.add_column("Δ nDCG@10", justify="right")
+                ablation_table.add_column("ms saved", justify="right")
+                for row in rows:
+                    delta = float(row["recall5_delta"])
+                    col = "green" if delta > 0.001 else "red" if delta < -0.001 else "dim"
+                    ablation_table.add_row(
+                        str(row["disabled"]),
+                        f"{row['recall@5']:.3f}",
+                        f"[{col}]{delta:+.3f}[/{col}]",
+                        f"{row['ndcg_delta']:+.3f}",
+                        f"{row['p50_saved_ms']:+.1f}",
+                    )
+                console.print(ablation_table)
+
+        if compare is not None and compare.exists():
+            try:
+                base_dict = _json.loads(compare.read_text(encoding="utf-8"))
+                comparison = compare_reports(base_dict, eval_report)
+                comp_table = Table(title=f"Comparison vs Baseline ({compare.name})")
+                comp_table.add_column("Metric")
+                comp_table.add_column("Baseline", justify="right")
+                comp_table.add_column("Candidate", justify="right")
+                comp_table.add_column("Δ Value", justify="right")
+                comp_table.add_column("% Change", justify="right")
+                for m_name, d_val in comparison["metrics"].items():
+                    d_num = d_val["delta"]
+                    c_col = "green" if d_num > 0.001 else "red" if d_num < -0.001 else "dim"
+                    comp_table.add_row(
+                        m_name,
+                        str(d_val["baseline"]),
+                        str(d_val["candidate"]),
+                        f"[{c_col}]{d_num:+.4f}[/{c_col}]",
+                        f"{d_val['pct_change']:+.1f}%",
+                    )
+                console.print(comp_table)
+            except Exception as comp_err:
+                err_console.print(
+                    f"[yellow]Could not compare against {compare}: {comp_err}[/yellow]"
+                )
         if base.misses:
             console.print(
                 f"\n[yellow]{len(base.misses)} queries retrieved nothing expected:[/yellow]"
             )
             for miss in base.misses[:10]:
                 console.print(f"  [dim]-[/dim] {miss}")
+
+        if output_json:
+            eval_report.to_json(output_json)
+            console.print(f"\n[dim]Exported JSON report -> {output_json}[/dim]")
+        if output_md:
+            eval_report.to_markdown(output_md)
+            console.print(f"[dim]Exported Markdown report -> {output_md}[/dim]")
+        if output_csv:
+            eval_report.to_csv(output_csv, per_query=True)
+            console.print(f"[dim]Exported CSV query results -> {output_csv}[/dim]")
+
+
+@app.command("eval")
+def eval_cmd(
+    cases: Annotated[
+        Path | None,
+        typer.Option("--cases", help="Ground-truth YAML/JSON benchmark cases."),
+    ] = None,
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 10,
+    ablate_components: Annotated[
+        bool, typer.Option("--ablate/--no-ablate", help="Measure component contribution.")
+    ] = True,
+    output_json: Annotated[
+        Path | None,
+        typer.Option("--output-json", help="Export full results to JSON."),
+    ] = None,
+    output_md: Annotated[
+        Path | None,
+        typer.Option("--output-md", help="Export formatted Markdown report."),
+    ] = None,
+    output_csv: Annotated[
+        Path | None,
+        typer.Option("--output-csv", help="Export query details to CSV."),
+    ] = None,
+    compare: Annotated[
+        Path | None,
+        typer.Option("--compare", help="Compare with a previous baseline JSON report."),
+    ] = None,
+    ignore_thermal: Annotated[
+        bool, typer.Option("--ignore-thermal", help="Index at full speed regardless of heat.")
+    ] = False,
+    reindex: Annotated[
+        bool, typer.Option("--reindex", help="Time a full cold index first.")
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Evaluate retrieval quality (Recall@1/5/10, MRR, MAP, nDCG@10, latencies)."""
+    _run_eval_pipeline(
+        config=config,
+        vault=vault,
+        offline=offline,
+        cases=cases,
+        top_k=top_k,
+        ablate_components=ablate_components,
+        output_json=output_json,
+        output_md=output_md,
+        output_csv=output_csv,
+        compare=compare,
+        ignore_thermal=ignore_thermal,
+        reindex=reindex,
+        verbose=verbose,
+        command_name="eval",
+    )
+
+
+@app.command()
+def bench(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    cases: Annotated[
+        Path | None,
+        typer.Option("--cases", help="Ground-truth YAML/JSON of query -> expected notes."),
+    ] = None,
+    top_k: Annotated[int, typer.Option("--top-k", "-k")] = 10,
+    reindex: Annotated[
+        bool, typer.Option("--reindex", help="Time a full cold index first.")
+    ] = False,
+    output_json: Annotated[
+        Path | None,
+        typer.Option("--output-json", help="Export full results to JSON."),
+    ] = None,
+    output_md: Annotated[
+        Path | None,
+        typer.Option("--output-md", help="Export formatted Markdown report."),
+    ] = None,
+    output_csv: Annotated[
+        Path | None,
+        typer.Option("--output-csv", help="Export query details to CSV."),
+    ] = None,
+    ignore_thermal: Annotated[
+        bool, typer.Option("--ignore-thermal", help="Index at full speed regardless of heat.")
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose")] = False,
+) -> None:
+    """Measure retrieval quality and indexing throughput on your vault."""
+    _run_eval_pipeline(
+        config=config,
+        vault=vault,
+        offline=offline,
+        cases=cases,
+        top_k=top_k,
+        ablate_components=True,
+        output_json=output_json,
+        output_md=output_md,
+        output_csv=output_csv,
+        compare=None,
+        ignore_thermal=ignore_thermal,
+        reindex=reindex,
+        verbose=verbose,
+        command_name="bench",
+    )
 
 
 @app.command()
