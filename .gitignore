@@ -38,3 +38,4 @@ checkpoints/
 
 # Personal learnings — local only, never pushed
 learnings/
+.venv-mesh/

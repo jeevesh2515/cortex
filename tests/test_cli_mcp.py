@@ -201,8 +201,7 @@ class TestCLI:
         indexed = runner.invoke(
             app,
             ["index", "--vault", str(vault), "--offline", "--ignore-thermal"],
-indexed = runner.invoke(
-            app, ["index", "--vault", str(vault), "--offline", "--ignore-thermal"]        )
+        )
         assert indexed.exit_code == 0, indexed.stdout
         assert "indexed" in indexed.stdout
 

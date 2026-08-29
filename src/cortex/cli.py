@@ -602,30 +602,7 @@ def _run_eval_pipeline(
             summary.add_row(key, value)
         console.print(summary)
 
-        rows = result.deltas()
-        if rows:
-            ablation = Table(title="Ablation - what each component contributes")
-            ablation.add_column("Disabled")
-            ablation.add_column("recall@5", justify="right")
-            ablation.add_column("\u0394 recall", justify="right")
-            ablation.add_column("\u0394 nDCG", justify="right")
-            ablation.add_column("ms saved", justify="right")
-            for row in rows:
-                delta = float(row["recall_delta"])
-                colour = "green" if delta > 0.001 else "red" if delta < -0.001 else "dim"
-                ablation.add_row(
-                    str(row["disabled"]),
-                    f"{row['recall@5']:.3f}",
-                    f"[{colour}]{delta:+.3f}[/{colour}]",
-                    f"{row['ndcg_delta']:+.3f}",
-                    f"{row['p50_saved_ms']:+.0f}",
-                )
-            console.print(ablation)
-            console.print(
-                "[dim]Positive \u0394 means the component helps: disabling it lost that "
-                "much recall. Negative means it is hurting you -- turn it off.[/dim]"
-            )
-if base.category_metrics:
+        if base.category_metrics:
             cat_table = Table(title="Metrics by Category")
             cat_table.add_column("Category")
             cat_table.add_column("Count", justify="right")
