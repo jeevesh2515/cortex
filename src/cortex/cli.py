@@ -1,13 +1,15 @@
 """Command-line interface.
 
-cortex index          incremental index of the vault
-cortex ask "..."      grounded answer with citations
-cortex search "..."   raw retrieval, no synthesis
-cortex status         index, thermal and routing state
-cortex providers      which providers may see private content, and why
-cortex graph          wikilink graph statistics
-cortex watch          run the incremental indexer continuously
-cortex serve-mcp      MCP stdio server for Antigravity
+cortex doctor       diagnose environment, configuration, dependencies
+cortex index        incremental index of the vault
+cortex ask "..."    grounded answer with citations
+cortex search "..." raw retrieval, no synthesis
+cortex status       index, thermal and routing state
+cortex providers    which providers may see private content, and why
+cortex graph        wikilink graph statistics
+cortex watch        run the incremental indexer continuously
+cortex serve        run the local web app (chat, voice, vault browser)
+cortex serve-mcp    MCP stdio server for Antigravity
 """
 
 from __future__ import annotations
@@ -71,6 +73,87 @@ def _runtime(config: Path | None, vault: Path | None, offline: bool):  # type: i
 def version() -> None:
     """Print the version."""
     console.print(f"cortex {__version__}")
+
+
+@app.command()
+def doctor(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+) -> None:
+    """Diagnose environment, configuration, and dependencies.
+
+    Runs vault, config, Ollama, vector store, MCP, optional extras, daemon and
+    memory-folder sanity checks -- without entering the indexing pipeline --
+    and prints a single ``Ready`` / ``N issues`` summary line. Use this when
+    the bootstrap script ended and you want to know whether indexing will
+    actually work, or when something downstream failed mysteriously and you
+    want a labelled view of which subsystem is the suspect.
+    """
+    from cortex.config import load_settings
+    from cortex.doctor import Status, run_doctor
+
+    settings = load_settings(config)
+    if vault is not None:
+        settings.vault_path = vault.expanduser()
+
+    report = run_doctor(settings)
+
+    table = Table(title="cortex doctor", show_header=False, box=None, padding=(0, 2))
+    table.add_column("Status")
+    table.add_column("Check")
+    table.add_column("Detail")
+
+    status_icon = {
+        Status.PASS: "[green]\u2713[/green]",
+        Status.INFO: "[blue]i[/blue]",
+        Status.WARN: "[yellow]![/yellow]",
+        Status.FAIL: "[red]\u2717[/red]",
+    }
+    detail_colour = {
+        Status.PASS: "green",
+        Status.INFO: "blue",
+        Status.WARN: "yellow",
+        Status.FAIL: "red",
+    }
+
+    for check in report.checks:
+        table.add_row(
+            status_icon[check.status],
+            check.name,
+            f"[{detail_colour[check.status]}]{check.message}[/{detail_colour[check.status]}]",
+        )
+        for line in check.details:
+            table.add_row("", "", f"  [dim]\u2022 {line}[/dim]")
+        if check.hint:
+            colour = detail_colour[check.status]
+            table.add_row("", "", f"  [{colour}]\u2192 {check.hint}[/{colour}]")
+
+    console.print(table)
+
+    if report.blocking == 0 and report.warnings == 0:
+        console.print("\n[bold green]Ready[/bold green]")
+        return
+
+    # The headline count and the breakdown must agree: an "issue" is a WARN or
+    # a FAIL; an INFO is just an observation that goes on its own line below.
+    # Mixing them into the breakdown makes "1 issue (1 blocking, 1 warning,
+    # 1 info)" -- an arithmetic puzzle where the count and the parts disagree.
+    parts: list[str] = []
+    if report.blocking:
+        parts.append(f"[bold red]{report.blocking} blocking[/bold red]")
+    if report.warnings:
+        warnings_word = "warning" if report.warnings == 1 else "warnings"
+        parts.append(f"[yellow]{report.warnings} {warnings_word}[/yellow]")
+    console.print(f"\n[bold]{report.summary_line()}[/bold] ({', '.join(parts)})")
+
+    if report.infos:
+        console.print(f"[blue]{report.infos} info[/blue]")
+
+    # Exit non-zero only for blocking issues; warnings are operationally fine
+    # and the user asked for a single summary line, not a failure code on a
+    # cosmetic gap like a missing daemon.
+    if report.blocking:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -519,7 +602,30 @@ def _run_eval_pipeline(
             summary.add_row(key, value)
         console.print(summary)
 
-        if base.category_metrics:
+        rows = result.deltas()
+        if rows:
+            ablation = Table(title="Ablation - what each component contributes")
+            ablation.add_column("Disabled")
+            ablation.add_column("recall@5", justify="right")
+            ablation.add_column("\u0394 recall", justify="right")
+            ablation.add_column("\u0394 nDCG", justify="right")
+            ablation.add_column("ms saved", justify="right")
+            for row in rows:
+                delta = float(row["recall_delta"])
+                colour = "green" if delta > 0.001 else "red" if delta < -0.001 else "dim"
+                ablation.add_row(
+                    str(row["disabled"]),
+                    f"{row['recall@5']:.3f}",
+                    f"[{colour}]{delta:+.3f}[/{colour}]",
+                    f"{row['ndcg_delta']:+.3f}",
+                    f"{row['p50_saved_ms']:+.0f}",
+                )
+            console.print(ablation)
+            console.print(
+                "[dim]Positive \u0394 means the component helps: disabling it lost that "
+                "much recall. Negative means it is hurting you -- turn it off.[/dim]"
+            )
+if base.category_metrics:
             cat_table = Table(title="Metrics by Category")
             cat_table.add_column("Category")
             cat_table.add_column("Count", justify="right")
@@ -586,7 +692,6 @@ def _run_eval_pipeline(
                 err_console.print(
                     f"[yellow]Could not compare against {compare}: {comp_err}[/yellow]"
                 )
-
         if base.misses:
             console.print(
                 f"\n[yellow]{len(base.misses)} queries retrieved nothing expected:[/yellow]"
@@ -799,6 +904,135 @@ def serve_mcp(
     from cortex.mcp_server import run_stdio
 
     run_stdio(config_path=config, vault=vault, offline=offline)
+
+
+@app.command("serve")
+def serve(
+    config: ConfigOpt = None,
+    vault: VaultOpt = None,
+    offline: OfflineOpt = False,
+    host: Annotated[
+        str | None,
+        typer.Option("--host", help="Bind address (overrides [serve].host in cortex.toml)."),
+    ] = None,
+    port: Annotated[
+        int | None,
+        typer.Option("--port", "-p", help="TCP port (overrides [serve].port in cortex.toml)."),
+    ] = None,
+    open_browser: Annotated[
+        bool | None,
+        typer.Option(
+            "--open/--no-open",
+            help="Open the local URL in your default browser on startup.",
+        ),
+    ] = None,
+    reload: Annotated[
+        bool, typer.Option("--reload", help="Auto-reload on source changes (dev only).")
+    ] = False,
+) -> None:
+    """Run the local web app: FastAPI backend + bundled SPA + chat UI.
+
+    One command starts the API, the chat server, and the built frontend on a
+    single port. Reach it at http://127.0.0.1:7331 by default. Use --port to
+    pick another if 7331 is busy; use --offline to run without model servers
+    (the hashing embedder is good enough for the UI demos).
+
+    The MCP server is unaffected by this -- it's still ``cortex serve-mcp`` for
+    LLM clients. The HTTP server is for humans.
+    """
+    from dataclasses import replace
+
+    from cortex.config import ServeConfig, load_settings
+
+    try:
+        import uvicorn
+    except ImportError as exc:  # pragma: no cover
+        raise typer.BadParameter(
+            "cortex serve needs the optional [server] extra. "
+            "Install with: pip install 'cortex-brain[server]'"
+        ) from exc
+
+    settings = load_settings(config)
+    if vault is not None:
+        settings.vault_path = vault.expanduser()
+    if host is not None or port is not None or open_browser is not None:
+        settings = replace(
+            settings,
+            serve=ServeConfig(
+                host=host if host is not None else settings.serve.host,
+                port=port if port is not None else settings.serve.port,
+                open_browser=(
+                    open_browser if open_browser is not None else settings.serve.open_browser
+                ),
+                cors_origins=settings.serve.cors_origins,
+            ),
+        )
+
+    # Build the runtime once eagerly so the API endpoints see it consistently
+    # (and so we can print a friendly "ready" line rather than letting the first
+    # request discover what failed).
+    from cortex.runtime import build_runtime
+    from cortex.server.dependencies import set_runtime
+
+    rt = build_runtime(settings=settings, offline=offline)
+    set_runtime(rt)
+
+    url = f"http://{settings.serve.host}:{settings.serve.port}"
+
+    from cortex.server.app import DEFAULT_FRONTEND_DIST
+
+    frontend_built = (
+        DEFAULT_FRONTEND_DIST.exists() and (DEFAULT_FRONTEND_DIST / "index.html").exists()
+    )
+    frontend_lines: list[str] = []
+    if not frontend_built:
+        frontend_lines = [
+            "",
+            "[yellow]! frontend/dist/index.html not found.[/yellow]",
+            "  The web UI will not load. To build it:",
+            "  [cyan]cd frontend && npm install && npm run build[/cyan]",
+            f"  The API works at [dim]/api/*[/dim] -- e.g. [cyan]{url}/api/whoami[/cyan]",
+        ]
+
+    console.print(
+        Panel(
+            f"[bold green]Cortex is listening at[/bold green] [cyan]{url}[/cyan]\n\n"
+            f"Vault:  [dim]{rt.settings.vault_path}[/dim]\n"
+            f"Provider chain: [dim]"
+            + ", ".join(p.spec.name for p in rt.router.providers)
+            + "[/dim]"
+            + "\n".join(frontend_lines),
+            title="cortex serve",
+            title_align="left",
+        )
+    )
+
+    if settings.serve.open_browser:
+        import contextlib
+        import threading
+        import time
+        import webbrowser
+
+        def _open() -> None:
+            # Give uvicorn a beat to bind the port before the browser asks, so
+            # the EventSource handshake doesn't race the first listener.
+            time.sleep(0.6)
+            with contextlib.suppress(Exception):
+                webbrowser.open(url)
+
+        threading.Thread(target=_open, daemon=True).start()
+
+    try:
+        uvicorn.run(
+            "cortex.server.app:create_app",
+            host=settings.serve.host,
+            port=settings.serve.port,
+            reload=reload,
+            log_level="info",
+            factory=True,
+        )
+    finally:
+        rt.close()
 
 
 def main() -> None:

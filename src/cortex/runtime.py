@@ -31,13 +31,19 @@ __all__ = ["Runtime", "StaticProbe", "build_runtime"]
 
 @dataclass(slots=True)
 class Runtime:
-    """A fully wired Cortex instance."""
+    """A fully wired Cortex instance.
+
+    ``governor`` is None only when the runtime was built in-memory (test/CI
+    scaffolding). Production runtimes always carry a live ThermalGovernor so
+    interactive queries stay fast while background indexing yields when the
+    machine is hot or on low battery.
+    """
 
     settings: Settings
     catalog: Catalog
     store: VectorStore
     embedder: EmbeddingProvider
-    governor: ThermalGovernor
+    governor: ThermalGovernor | None
     router: Router
     pipeline: IndexPipeline
     graph: LinkGraph | None = None
@@ -125,10 +131,19 @@ def build_runtime(
     catalog = Catalog(":memory:" if in_memory else settings.db_path)
     store = MemoryStore() if in_memory else _build_store(settings)
     embedder = _build_embedder(settings, offline=offline)
-    governor = ThermalGovernor(
+    # In-memory runtimes are test/CI scaffolding and must not depend on the
+    # developer's real battery or chassis state. The pipeline-level gate would
+    # otherwise refuse to index on a MacBook that ``pmset`` reports as
+    # throttling or on battery below ``min_battery_for_backfill`` -- which is
+    # exactly what happens on a developer laptop during a long test run. We
+    # therefore skip the governor entirely in test mode (None propagates into
+    # ``IndexPipeline``, whose ``respect_thermal`` gate becomes a no-op) and
+    # leave status display to surface that fact explicitly.
+    governor = (
+        ThermalGovernor(probe=default_probe(), config=settings.governor) if not in_memory else None
+governor = ThermalGovernor(
         probe=probe if probe is not None else default_probe(),
-        config=settings.governor,
-    )
+        config=settings.governor,    )
 
     providers = build_chat_providers(settings.providers)
     router = Router(providers)
