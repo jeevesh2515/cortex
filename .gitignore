@@ -21,6 +21,8 @@ cortex.toml
 .idea/
 .vscode/
 
-# Training raw data (do not commit — CC BY-SA derived content)
+# Training raw data and checkpoints (do not commit)
 training/raw/
 training/*.jsonl
+training/checkpoints/
+training/models/
