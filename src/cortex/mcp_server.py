@@ -359,62 +359,19 @@ class CortexTools:
 def build_server(tools: CortexTools) -> Any:
     """Construct the MCP server. Requires the optional ``mcp`` extra.
 
-    The modern ``mcp`` library registers tool handlers via constructor
-    arguments (``on_list_tools``, ``on_call_tool``) rather than decorators.
-    Older ``Server.list_tools`` / ``Server.call_tool`` methods no longer
-    exist, so building the server via decorators would silently no-op.
-    """
-    try:
-        from mcp.server import Server, ServerRequestContext
-        from mcp.types import (
-            CallToolRequestParams,
-            CallToolResult,
-            ListToolsResult,
-            PaginatedRequestParams,
-            TextContent,
-            Tool,
-        )
-Uses ``MCPServer`` (the MCP 2.0 high-level API). A single ``dispatch``
+    Uses ``MCPServer`` (the MCP 2.0 high-level API). A single ``dispatch``
     wrapper is registered for each tool name so the JSON-RPC routing stays in
     ``CortexTools.dispatch`` rather than being duplicated here.
     """
     try:
         from mcp.server.mcpserver import MCPServer
-        from mcp.types import TextContent    except ImportError as exc:  # pragma: no cover
+        from mcp.types import TextContent
+    except ImportError as exc:  # pragma: no cover
         raise ImportError(
             "MCP support is not installed. Install with: pip install 'cortex-brain[mcp]'"
         ) from exc
 
-    async def _list_tools(
-        _ctx: ServerRequestContext[object, object],
-        _params: PaginatedRequestParams | None,
-    ) -> ListToolsResult:
-        # The on-the-wire Tool field is ``inputSchema`` (camelCase), but the
-        # pydantic stub mypy enforces declares it snake_case. Instantiation
-        # through ``model_validate`` accepts the wire spelling via the alias
-        # generator and satisfies the stub simultaneously, so we avoid the
-        # direct constructor's typing demerits over list-dict values.
-        tools_list: list[Tool] = [
-            Tool.model_validate(
-                {
-                    "name": spec["name"],
-                    "description": spec["description"],
-                    "inputSchema": spec["input_schema"],
-                }
-            )
-            for spec in TOOL_DEFINITIONS
-        ]
-        return ListToolsResult(tools=tools_list)
-
-    async def _call_tool(
-        _ctx: ServerRequestContext[object, object],
-        params: CallToolRequestParams,
-    ) -> CallToolResult:
-        payload = tools.dispatch(params.name, dict(params.arguments or {}))
-        return CallToolResult(
-            content=[TextContent(type="text", text=json.dumps(payload, indent=2, default=str))]
-        )
-server = MCPServer("cortex")
+    server = MCPServer("cortex")
 
     for spec in TOOL_DEFINITIONS:
         _name: str = spec["name"]  # type: ignore[assignment]
@@ -431,11 +388,8 @@ server = MCPServer("cortex")
             return _handler
 
         server.add_tool(_make_handler(_name), name=_name, description=_desc)
-    return Server(
-        "cortex",
-        on_list_tools=_list_tools,
-        on_call_tool=_call_tool,
-    )
+
+    return server
 
 
 def run_stdio(
