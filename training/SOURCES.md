@@ -46,12 +46,11 @@ Licence: CC BY-SA 4.0
 
 ---
 
-## Pending Sources (deferred to Milestone 3B-2)
+## Designed Sources (Milestone 3B-2 Design / Milestone 3C Target)
 
-| Source | Status | Blocker |
+| Source | Status | Scope |
 |---|---|---|
-| Natural Questions / DPR Wikipedia passages | **Pending audit** | Separate canonical-source and licence audit required. NQ-Open Q&A ≠ passage retrieval corpus; DPR passage segmentation and annotation layer need independent verification. |
-| PKM synthetic pairs | **Deferred** | Not needed for 3B-1 pilot; requires generation plan and model provenance record. |
+| **PKM synthetic pairs** | **Designed** (Approval B granted) | 200 train + 50 dev; project-authored markdown seeds; MIT license |
 
 ---
 
@@ -62,3 +61,4 @@ Licence: CC BY-SA 4.0
 | BEIR / NF-Corpus | "Academic purposes only" — custom restrictive terms; NutritionFacts.org permission required |
 | BEIR / SciFact (corpus.jsonl) | ODC-By 1.0 covers DB rights only; publisher copyright on abstracts not cleared |
 | MS MARCO | Microsoft non-commercial research terms; explicitly excludes commercial products |
+| Natural Questions / DPR passages (`psgs_w100.tsv.gz`, `nq-*.json`) | **CC-BY-NC 4.0** (Facebook AI Research) — Non-Commercial restriction incompatible with project terms |

@@ -17,11 +17,9 @@
 | **PKM synthetic pairs** | Training positives | **APPROVED** (pending Approval B already granted) | MIT licence; project-owned; no third-party content |
 | MS MARCO | Hard negatives only | **REJECTED** | Microsoft non-commercial research terms; explicitly excludes commercial products |
 | **HotpotQA** | Proposed replacement | **APPROVED — 3B-1 pilot** | CC BY-SA 4.0; share-alike implications for weights unresolved; no distribution of weights or data without separate review |
-| **Natural Questions (NQ-open Wikipedia passages)** | Proposed replacement | **PENDING — canonical-source audit required** | NQ-Open questions/answers are not a passage retrieval corpus; DPR/Wikipedia passage licence needs separate verification |
+| **Natural Questions / DPR passages** | Proposed replacement | **REJECTED** | CC-BY-NC 4.0 on Facebook AI DPR passage corpus and retrieval mappings |
 
-**Corrected source plan for Approval A**: Replace NF-Corpus and SciFact with
-HotpotQA (CC BY-SA 4.0) and NQ-open passages (CC BY-SA 3.0). MS MARCO
-is removed from the plan entirely.
+**Source plan after 3B-2 audit**: HotpotQA (CC BY-SA 4.0) + PKM Synthetic pairs (MIT). NF-Corpus, SciFact, MS MARCO, and NQ/DPR are permanently rejected.
 
 ---
 
@@ -233,35 +231,28 @@ distributed externally.
 
 ---
 
-### 3.2 Natural Questions (NQ-Open, Wikipedia passages) — PENDING AUDIT
+### 3.2 Natural Questions (NQ-Open / DPR Wikipedia passages) — AUDIT COMPLETE: REJECTED
 
-> **[STATUS: PENDING]** A separate canonical-source and licence audit is
-> required before NQ-Open may be used. The NQ-Open dataset provides
-> questions and short answers extracted from Google Search logs; it is NOT
-> itself a passage retrieval corpus. The DPR Wikipedia passage corpus is a
-> separate artefact (Karpukhin et al. 2020) with its own provenance and
-> licence chain. Both must be audited independently before use.
+> **[STATUS: REJECTED (Milestone 3B-2)]**  
+> Canonical audit completed on 2026-08-29. While Google's NQ question/answer
+> dataset is CC BY-SA 3.0, the passage retrieval corpus (`psgs_w100.tsv.gz`)
+> and retrieval pair splits (`nq-train.json`, `nq-dev.json`) were created and
+> distributed by Facebook AI Research (`facebookresearch/DPR`, Karpukhin et al. 2020)
+> under **CC-BY-NC 4.0** (Non-Commercial). This violates the project's
+> commercial permissibility standard.
 
 | Field | Value |
 |---|---|
-| Canonical URL | https://ai.google.com/research/NaturalQuestions |
-| Repository | https://github.com/google-research-datasets/natural-questions |
-| Paper | Kwiatkowski et al. 2019, TACL |
-| Queries licence | Google's NQ Terms — scope unclear for training |
-| DPR Wikipedia passage corpus | Karpukhin et al. 2020; passages from Wikipedia dump — separate audit needed |
-| Wikipedia text licence | CC BY-SA 3.0 (but passage segmentation, IDs, and annotation layer have own provenance) |
-| DPR passage version | 21M passages from Dec 2018 Wikipedia dump — canonical URL and hash not yet recorded |
+| Canonical URL | https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz |
+| Repository | https://github.com/facebookresearch/DPR |
+| Paper | Karpukhin et al. 2020, EMNLP |
+| DPR Passage Corpus License | **CC-BY-NC 4.0** (Non-Commercial) |
+| DPR Retrieval Mapping License | **CC-BY-NC 4.0** (Non-Commercial) |
+| Underlying Wikipedia Text | CC BY-SA 3.0 / 4.0 |
+| Commercial Use Permitted? | **NO** — explicitly prohibited by CC-BY-NC 4.0 |
 
-#### 3.2.1 Open Questions Blocking Approval
-
-1. Are Google Search queries in NQ-Open licenced for commercial AI training?
-2. What is the canonical download URL and SHA-256 for the DPR Wikipedia passage dump?
-3. Does the DPR passage segmentation layer introduce additional licence obligations?
-4. Is there a version-locked, verifiable release of the DPR passages?
-
-**Decision**: **PENDING** — do not download or use NQ/DPR passages until
-a completed canonical-source audit is recorded in this document.
-This source is deferred to Milestone 3B-2 or later.
+**Verdict**: **REJECTED**. Consistent with the rejection of MS MARCO, all
+non-commercial restricted datasets are prohibited from entering the training pipeline.
 
 ---
 
@@ -269,14 +260,14 @@ This source is deferred to Milestone 3B-2 or later.
 
 The following replaces the plan proposed in `eval/AUDIT.md §5`:
 
-| Source | Status | Licence | Size (3B-1 pilot) | Use |
+| Source | Status | Licence | Size (pilot) | Use |
 |---|---|---|---|---|
 | ~~BEIR NF-Corpus~~ | **Rejected** | Custom restrictive | — | Removed |
 | ~~BEIR SciFact~~ | **Rejected** | ODC-By + unclear copyright | — | Removed |
 | ~~MS MARCO~~ | **Rejected** | Non-commercial only | — | Removed |
-| **HotpotQA** | **Approved — 3B-1** | CC BY-SA 4.0 | ≤300 train + ≤50 dev | Training positives + hard negatives |
-| ~~NQ-open / DPR passages~~ | **Pending audit** | TBD | — | Deferred to 3B-2 |
-| **PKM synthetic pairs** | Approved (Approval B) | MIT (project) | Deferred to 3B-2 | Training positives |
+| ~~NQ-open / DPR passages~~ | **Rejected** | CC-BY-NC 4.0 | — | Removed |
+| **HotpotQA** | **Approved — 3B-1** | CC BY-SA 4.0 | 300 train + 50 dev | Training positives + hard negatives |
+| **PKM synthetic pairs** | Designed (Approval B) | MIT (project) | 200 train + 50 dev (target) | Training positives (Milestone 3C) |
 
 3B-1 pilot size: ≤300 train + ≤50 dev from HotpotQA only.
 
@@ -316,9 +307,9 @@ a separate, explicit licensing review. Internal use only for the 3B-1 pilot.
 | Approval | Status | Scope |
 |---|---|---|
 | **Approval A (HotpotQA)** | **Granted — 3B-1 pilot** | ≤300 train + ≤50 dev; no weight/data distribution |
-| **Approval A (NQ-open/DPR)** | **Pending** — canonical-source audit required | Deferred to 3B-2 |
-| **Approval B** | Granted | ≤50% synthetic per category; provenance in `notes` |
-| **Approval C** | Granted | ≤500 train + ≤100 dev pilot |
+| **Approval A (NQ-open/DPR)** | **REJECTED** | Rejected in 3B-2 due to CC-BY-NC 4.0 |
+| **Approval B (PKM Synthetic)** | Granted / Designed | 200 train + 50 dev; strict review rubric; MIT |
+| **Approval C (Pilot scale)** | Granted | ≤500 train + ≤100 dev total pilot ceiling |
 | **Approval D** | Granted (with correction) | eval/baseline_dense.* and eval/vault/ immutable v1; future eval as new versioned suite |
 
 No data will be downloaded until this revised Approval A is received.
