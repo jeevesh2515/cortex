@@ -2,6 +2,24 @@
 
 This directory contains the version-controlled evaluation dataset and fixture vault for measuring retrieval quality across embeddings, keyword search, graph expansion, and reranking models.
 
+> **Baseline assets are immutable.** `baseline_dense.json`, `baseline_dense.md`,
+> `cases.yaml`, and `vault/` must not be modified without creating a new versioned
+> baseline. Verify integrity with:
+> ```bash
+> sha256sum -c eval/CHECKSUMS.sha256
+> ```
+> See [AUDIT.md](./AUDIT.md) for the full Milestone 3A statistical audit,
+> split policy, training-data schema, and corpus source plan.
+
+## Baseline Fingerprints (commit `c64e93c`)
+
+| Asset | SHA-256 |
+|---|---|
+| `baseline_dense.json` | `64c190af…daf7ed0` |
+| `baseline_dense.md` | `0d37a6c2…cc00dd8f` |
+| `cases.yaml` | `001e7563…09db9acd` |
+| `vault/` (11 files) | See `CHECKSUMS.sha256` for per-file hashes |
+
 ## Dataset Structure
 
 - `cases.yaml`: 25 curated benchmark cases across 11 domain-specific notes.
