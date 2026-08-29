@@ -1,0 +1,2502 @@
+{
+  "timestamp": "2026-08-29T14:22:59.599426+00:00",
+  "model": {
+    "name": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "c97b51e065bf022ab3b544eb40778c1db1755106",
+    "licence": "Apache-2.0",
+    "parameters": 22713216
+  },
+  "training": {
+    "device": "mps",
+    "epochs": 3,
+    "batch_size": 16,
+    "learning_rate": 2e-05,
+    "training_examples": 500,
+    "training_duration_seconds": 105.32,
+    "output_path": "/Users/jeeveshsingale/Developer/cortex/training/checkpoints/experiment_3c/fine_tuned_model"
+  },
+  "evaluation": {
+    "hotpotqa_dev": {
+      "baseline": {
+        "recall_at_1": 0.8,
+        "recall_at_5": 0.94,
+        "recall_at_10": 0.96,
+        "mrr": 0.8574812030075187,
+        "ndcg_at_10": 0.8808205224408515,
+        "avg_latency_ms": 20.942229200154543,
+        "query_count": 50,
+        "per_query_results": [
+          {
+            "query": "Are Random House Tower and 888 7th Avenue both used for real estate?",
+            "expected": [
+              "hotpotqa/Random House Tower"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Random House Tower",
+              "hotpotqa/888 7th Avenue",
+              "hotpotqa/5th Avenue Theatre"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 26.535124983638525
+          },
+          {
+            "query": "Which  French ace pilot and adventurer fly L'Oiseau Blanc",
+            "expected": [
+              "hotpotqa/L'Oiseau Blanc"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/L'Oiseau Blanc",
+              "hotpotqa/Fran\u00e7ois Coli",
+              "hotpotqa/Georges Madon"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 17.383709084242582
+          },
+          {
+            "query": "Are both Cypress and Ajuga genera?",
+            "expected": [
+              "hotpotqa/Cypress"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cypress",
+              "hotpotqa/Cupressus",
+              "hotpotqa/Fokienia"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.96154135465622
+          },
+          {
+            "query": "The Album Against the Wind was the 11th Album of a Rock singer Robert C Seger born may 6 1945. What was the Rock singers stage name ?",
+            "expected": [
+              "hotpotqa/Against the Wind (album)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Against the Wind (album)",
+              "hotpotqa/Ride Out (album)",
+              "hotpotqa/Seumas MacManus"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.811583682894707
+          },
+          {
+            "query": "How many copies of Roald Dahl's variation on a popular anecdote sold?",
+            "expected": [
+              "hotpotqa/Mrs. Bixby and the Colonel's Coat"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/The Best of Roald Dahl",
+              "hotpotqa/Roald Dahl: Collected Stories",
+              "hotpotqa/The Collected Short Stories of Roald Dahl"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 17.6916248165071
+          },
+          {
+            "query": "During Siege of Bharatpur, which Commander-in-Chief of Ireland and Commander-in-Chief of India contributed to the storming of the castle?",
+            "expected": [
+              "hotpotqa/Siege of Bharatpur"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Siege of Bharatpur",
+              "hotpotqa/Claude Auchinleck",
+              "hotpotqa/Bharatpur district"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 15.318125020712614
+          },
+          {
+            "query": "What occupation was shared by David Yates and Pietro Germi?",
+            "expected": [
+              "hotpotqa/David Yates"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/David Yates",
+              "hotpotqa/Ottavio Alessi",
+              "hotpotqa/J\u00falius Satinsk\u00fd"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.560374949127436
+          },
+          {
+            "query": "Martin Patterson \"Pat\" Hingle was a close friend of an actor who achieved success in what Western TV series?",
+            "expected": [
+              "hotpotqa/Pat Hingle"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Pat Hingle",
+              "hotpotqa/Trevor Kennedy",
+              "hotpotqa/Brian Cook (football administrator)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 22.51324988901615
+          },
+          {
+            "query": "Is the Marsilea or the Brabejum the genus of more individual species of plants?",
+            "expected": [
+              "hotpotqa/Marsilea"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Marsilea",
+              "hotpotqa/Cupressus",
+              "hotpotqa/Leptospermum"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 25.980417151004076
+          },
+          {
+            "query": "A scam involving a male calling small town fast-food restaurants and pretending to be a police officer to have them strip search employees was turned into a movie of what name?",
+            "expected": [
+              "hotpotqa/Compliance (film)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Compliance (film)",
+              "hotpotqa/Devyani Khobragade",
+              "hotpotqa/Mirrors (film)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.73687468469143
+          },
+          {
+            "query": "Patrick Kennedy is known for his collections of Irish  folktales from a province situated in which part of Ireland ?",
+            "expected": [
+              "hotpotqa/Patrick Kennedy (folklorist)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Patrick Kennedy (folklorist)",
+              "hotpotqa/Irish Fairy Tales",
+              "hotpotqa/The Greek Princess and the Young Gardener"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.700959023088217
+          },
+          {
+            "query": "Which came to market first, \"Hey Pa! There's a Goat on the Roof\" or \"Poleconomy\"",
+            "expected": [
+              "hotpotqa/Hey Pa! There's a Goat on the Roof"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hey Pa! There's a Goat on the Roof",
+              "hotpotqa/The Hanging Tree",
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.73250012472272
+          },
+          {
+            "query": "Which American music star appeared as a guest in a Will & Grace episode called \"Back Up, Dancer\"?",
+            "expected": [
+              "hotpotqa/Back Up, Dancer"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Back Up, Dancer",
+              "hotpotqa/List of Demi Lovato live performances",
+              "hotpotqa/Alie Ward"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 11.523083318024874
+          },
+          {
+            "query": "What studio album did Kanye West record with Roc-A-Fella Records and soul singer Dwele?",
+            "expected": [
+              "hotpotqa/Power (Kanye West song)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Graduation (album)",
+              "hotpotqa/The College Dropout",
+              "hotpotqa/Hip Hop Since 1978"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 27.401083149015903
+          },
+          {
+            "query": "J\u00falius Satinsk\u00fd was born in a city that has a current population of what?",
+            "expected": [
+              "hotpotqa/J\u00falius Satinsk\u00fd"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/J\u00falius Satinsk\u00fd",
+              "hotpotqa/Chernivtsi",
+              "hotpotqa/Ottavio Alessi"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 52.51229181885719
+          },
+          {
+            "query": "What city did the characters from Gargoyles the Movie: The Heroes Awaken wake up in after being in an enchantedly petrified state for a thousand years?",
+            "expected": [
+              "hotpotqa/Gargoyles the Movie: The Heroes Awaken"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Gargoyles the Movie: The Heroes Awaken",
+              "hotpotqa/Serafino (film)",
+              "hotpotqa/Nunnally Lamperouge"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 41.63245763629675
+          },
+          {
+            "query": "Scott Sandelin grew up in a town in what Minnesota county?",
+            "expected": [
+              "hotpotqa/Scott Sandelin"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Scott Sandelin",
+              "hotpotqa/Scott County Transit",
+              "hotpotqa/Mankato, Minnesota"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 21.31233410909772
+          },
+          {
+            "query": "Erica Packer was the second wife of what Australian businessman?",
+            "expected": [
+              "hotpotqa/Erica Packer"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Erica Packer",
+              "hotpotqa/Trevor Kennedy",
+              "hotpotqa/Alie Ward"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 16.49529207497835
+          },
+          {
+            "query": "which is traditionally drunk before retiring to bed, Hot toddy or Kir?",
+            "expected": [
+              "hotpotqa/Hot toddy"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hot toddy (disambiguation)",
+              "hotpotqa/Hot toddy",
+              "hotpotqa/Love Drunk (Boys Like Girls song)"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 14.789875131100416
+          },
+          {
+            "query": "Who has more scope of profession, Phil Rosen or  Delmer Daves?",
+            "expected": [
+              "hotpotqa/Delmer Daves"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Delmer Daves",
+              "hotpotqa/Brian Cook (football administrator)",
+              "hotpotqa/Fels Institute of Government"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.547874573618174
+          },
+          {
+            "query": "What is the birthday of this Anglo-Irish actress, courtean, and mistress, who was the mother to the illegitimate daughter of King William IV?",
+            "expected": [
+              "hotpotqa/Elizabeth Hay, Countess of Erroll"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Lady Mary Fox",
+              "hotpotqa/Elizabeth Hay, Countess of Erroll",
+              "hotpotqa/Amelia Cary, Viscountess Falkland"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 16.732000280171633
+          },
+          {
+            "query": "During which years was the model of car, featured on the cover of Earth's \"Pentastar: In the Style of Demons\" manufactured?",
+            "expected": [
+              "hotpotqa/Pentastar: In the Style of Demons"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Pentastar: In the Style of Demons",
+              "hotpotqa/Chevrolet Corvette",
+              "hotpotqa/Nissan Cefiro"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.715791266411543
+          },
+          {
+            "query": "are the documentaries Out of Place and The Mosuo Sisters by the same director ?",
+            "expected": [
+              "hotpotqa/Out of Place"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Ottavio Alessi",
+              "hotpotqa/Sisters of Wellber",
+              "hotpotqa/4th Impact"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.16666666666666666,
+            "ndcg_at_10": 0.3562071871080222,
+            "latency_ms": 36.0227907076478
+          },
+          {
+            "query": "Are Distortion Mirrors and OK Go both considered rock bands?",
+            "expected": [
+              "hotpotqa/Distortion Mirrors"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Distortion Mirrors",
+              "hotpotqa/Mirrors (film)",
+              "hotpotqa/OK Go (2000 EP)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 42.62783285230398
+          },
+          {
+            "query": "Flynn Rider is voiced by which American actor and singer born September 29, 1980?",
+            "expected": [
+              "hotpotqa/Flynn Rider"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Flynn Rider",
+              "hotpotqa/Mehrdad Raissi Ardali",
+              "hotpotqa/Dale D. Kelly"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.840417429804802
+          },
+          {
+            "query": "What was the occupation of the man who published an individualist anarchist journal?",
+            "expected": [
+              "hotpotqa/Moses Harman"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Henry Meulen",
+              "hotpotqa/Joe Peacott",
+              "hotpotqa/Moses Harman"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "latency_ms": 13.502125162631273
+          },
+          {
+            "query": "Which part of Scotland is this institute found where Alice K\u00f6nig is a lecturer in Latin and Classical Studies?",
+            "expected": [
+              "hotpotqa/Alice K\u00f6nig"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Alice K\u00f6nig",
+              "hotpotqa/Elizabeth Reid Boyd",
+              "hotpotqa/Vanier College at York University"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 29.540000017732382
+          },
+          {
+            "query": "The singer known as the \"Ballad Prince\" was on a romantic comedy that aired on what state-run channel from August 11 to September 30, 2010?",
+            "expected": [
+              "hotpotqa/My Girlfriend Is a Nine-Tailed Fox"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Kanako Takatsuki",
+              "hotpotqa/Legends (Kelsea Ballerini song)",
+              "hotpotqa/Rebecca Forstadt"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.05263157894736842,
+            "ndcg_at_10": 0.0,
+            "latency_ms": 34.792291931807995
+          },
+          {
+            "query": "Which canal, Miami Canal or Dundee Canal, also supplies hydro-power and water for manufacturing?",
+            "expected": [
+              "hotpotqa/Miami Canal"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Miami Canal",
+              "hotpotqa/Kern Island Canal",
+              "hotpotqa/Carrier Canal"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 38.61749963834882
+          },
+          {
+            "query": "The Luther seal was designed for the professor of theology of what nationalty at the behest of John Frederick of Saxony?",
+            "expected": [
+              "hotpotqa/Luther rose"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Luther rose",
+              "hotpotqa/Frederick III, Elector of Saxony",
+              "hotpotqa/John Frederick II, Duke of Saxony"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 14.836250338703394
+          },
+          {
+            "query": "Which \"Mirrors\" actress made her film debut in the 2005 comedy film \"Hitch\"?",
+            "expected": [
+              "hotpotqa/Mirrors (film)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Mirrors (film)",
+              "hotpotqa/Th\u00e9r\u00e8se Raquin (1928 film)",
+              "hotpotqa/Rebecca Forstadt"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 21.26724971458316
+          },
+          {
+            "query": "Who was the leading actor of the Christmas movie that Rebecca Forstadt did background voices for?",
+            "expected": [
+              "hotpotqa/Rebecca Forstadt"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Rebecca Forstadt",
+              "hotpotqa/Christmas in Paradise",
+              "hotpotqa/Nunnally Lamperouge"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 17.19129178673029
+          },
+          {
+            "query": "Casey Jr. Splash 'n' Soak Station is an attraction in a city located in which county ?",
+            "expected": [
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station",
+              "hotpotqa/Ray's Splash Planet",
+              "hotpotqa/Carrier Canal"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 13.460374902933836
+          },
+          {
+            "query": "Which WWE wrestler who performs on the Smackdown brand has his initials as part of the team \"Rated-RKO",
+            "expected": [
+              "hotpotqa/Rated-RKO"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Rated-RKO",
+              "hotpotqa/List of WWE Raw Tag Team Champions",
+              "hotpotqa/2008 WWE draft"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.10949994251132
+          },
+          {
+            "query": "What profession does H. L. Mencken and Albert Camus have in common?",
+            "expected": [
+              "hotpotqa/H. L. Mencken"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/H. L. Mencken",
+              "hotpotqa/Herbert Lottman",
+              "hotpotqa/The Rebel (book)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 17.000750172883272
+          },
+          {
+            "query": "What Japanese Auto Manufacturer headquarted in Minato, Tokyo, Japan did Nissan aquire controlling interest in?",
+            "expected": [
+              "hotpotqa/Mitsubishi Motors"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Mitsubishi Motors",
+              "hotpotqa/Prince Motor Company",
+              "hotpotqa/Nissan Cefiro"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 32.05429203808308
+          },
+          {
+            "query": "What is the name of one the ex-security officials that means The Institute?",
+            "expected": [
+              "hotpotqa/Commanders for Israel's Security"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Commanders for Israel's Security",
+              "hotpotqa/Fels Institute of Government",
+              "hotpotqa/Alice K\u00f6nig"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 17.37299980595708
+          },
+          {
+            "query": "Which author dedicated a 1985 romance novel to the author who did in 2009 and wrote under the pen name Gwyneth Moore?",
+            "expected": [
+              "hotpotqa/A Company of Swans"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cherry Ripe (novel)",
+              "hotpotqa/Elizabeth Reid Boyd",
+              "hotpotqa/The Collected Short Stories of Roald Dahl"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.07142857142857142,
+            "ndcg_at_10": 0.0,
+            "latency_ms": 15.072042122483253
+          },
+          {
+            "query": "Is the building located at 200 West Street taller than the one at 888 7th Avenue?",
+            "expected": [
+              "hotpotqa/888 7th Avenue"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/888 7th Avenue",
+              "hotpotqa/West Street District",
+              "hotpotqa/Random House Tower"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 10.924458038061857
+          },
+          {
+            "query": "Who had the lowest vocal range in Cosmos?",
+            "expected": [
+              "hotpotqa/Cosmos (band)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cosmos (band)",
+              "hotpotqa/List of contraltos in non-classical music",
+              "hotpotqa/Cosmos Holidays"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.139792002737522
+          },
+          {
+            "query": "Which of the music composed for Operation Amsterdam originated in the middle of the 19th century in Bohemia, now part of the Czech Republic?",
+            "expected": [
+              "hotpotqa/Operation Amsterdam"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Operation Amsterdam",
+              "hotpotqa/Czech Renaissance architecture",
+              "hotpotqa/Bohemian"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 22.239415906369686
+          },
+          {
+            "query": "The producer of the Eric Church album \"The Outsiders\" was a member of what band in the 1980's?",
+            "expected": [
+              "hotpotqa/The Outsiders (Eric Church album)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/The Outsiders (Eric Church album)",
+              "hotpotqa/Cold One",
+              "hotpotqa/A Light in the Dark"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 11.66716730222106
+          },
+          {
+            "query": "Where is the seminar Jeanne Marie Beaumont directed in 2007-2010 located?",
+            "expected": [
+              "hotpotqa/Jeanne Marie Beaumont"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Jeanne Marie Beaumont",
+              "hotpotqa/Jeanne Golay",
+              "hotpotqa/Sonya Taaffe"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 23.368292022496462
+          },
+          {
+            "query": "The True Colors World Tour was by what artist whose debut album was \"She's So Unusual\"?",
+            "expected": [
+              "hotpotqa/True Colors World Tour"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/True Colors World Tour",
+              "hotpotqa/List of Beyonc\u00e9 live performances",
+              "hotpotqa/List of Demi Lovato live performances"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 13.22020823135972
+          },
+          {
+            "query": "Shani Gandi has worked with Kelsea Ballerini in what country?",
+            "expected": [
+              "hotpotqa/Shani Gandhi"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Shani Gandhi",
+              "hotpotqa/Kishori Ballal",
+              "hotpotqa/Devyani Khobragade"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 11.393416672945023
+          },
+          {
+            "query": "This man who was born on April 25th, 1947, was a member of this lower house of the Hawaii State Legislature.",
+            "expected": [
+              "hotpotqa/Robert Bunda"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hawaii State Legislature",
+              "hotpotqa/Robert Bunda",
+              "hotpotqa/Romeo Munoz Cachola"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 11.17383362725377
+          },
+          {
+            "query": "What county in Minnesota holds a 202 lb slab of greywacke covered in runes?",
+            "expected": [
+              "hotpotqa/Kensington, Minnesota"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Bridge No. 3355-Kathio Township",
+              "hotpotqa/Scott County Transit",
+              "hotpotqa/Slab Fork, West Virginia"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 8.751124609261751
+          },
+          {
+            "query": "Billy Preston is an American college basketball player for a team that competes in what?",
+            "expected": [
+              "hotpotqa/Billy Preston (basketball)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Billy Preston (basketball)",
+              "hotpotqa/Terry Holland",
+              "hotpotqa/Walter Hirsch"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 10.737000033259392
+          },
+          {
+            "query": "About whose assassination is the French novel HHhH based?",
+            "expected": [
+              "hotpotqa/HHhH"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/HHhH",
+              "hotpotqa/The Rebel (book)",
+              "hotpotqa/Herbert Lottman"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 12.280167080461979
+          },
+          {
+            "query": "What was the lead single from Boys Like Girls album on which frontman, Martin Johnson co-wrote a song with Taylor Swift? A: Love Drunk",
+            "expected": [
+              "hotpotqa/Love Drunk"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Love Drunk",
+              "hotpotqa/Love Drunk (Boys Like Girls song)",
+              "hotpotqa/Heart Heart Heartbreak"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 22.32070779427886
+          }
+        ]
+      },
+      "fine_tuned": {
+        "recall_at_1": 0.82,
+        "recall_at_5": 0.96,
+        "recall_at_10": 1.0,
+        "mrr": 0.8773333333333333,
+        "ndcg_at_10": 0.9066454405899387,
+        "avg_latency_ms": 26.209056517109275,
+        "query_count": 50,
+        "per_query_results": [
+          {
+            "query": "Are Random House Tower and 888 7th Avenue both used for real estate?",
+            "expected": [
+              "hotpotqa/Random House Tower"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Random House Tower",
+              "hotpotqa/888 7th Avenue",
+              "hotpotqa/5th Avenue Theatre"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 26.730583980679512
+          },
+          {
+            "query": "Which  French ace pilot and adventurer fly L'Oiseau Blanc",
+            "expected": [
+              "hotpotqa/L'Oiseau Blanc"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/L'Oiseau Blanc",
+              "hotpotqa/Fran\u00e7ois Coli",
+              "hotpotqa/Georges Madon"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.59437534585595
+          },
+          {
+            "query": "Are both Cypress and Ajuga genera?",
+            "expected": [
+              "hotpotqa/Cypress"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cypress",
+              "hotpotqa/Cupressus",
+              "hotpotqa/Fokienia"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 21.357208024710417
+          },
+          {
+            "query": "The Album Against the Wind was the 11th Album of a Rock singer Robert C Seger born may 6 1945. What was the Rock singers stage name ?",
+            "expected": [
+              "hotpotqa/Against the Wind (album)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Against the Wind (album)",
+              "hotpotqa/Ride Out (album)",
+              "hotpotqa/Seumas MacManus"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 16.39270782470703
+          },
+          {
+            "query": "How many copies of Roald Dahl's variation on a popular anecdote sold?",
+            "expected": [
+              "hotpotqa/Mrs. Bixby and the Colonel's Coat"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/The Best of Roald Dahl",
+              "hotpotqa/Roald Dahl: Collected Stories",
+              "hotpotqa/The Collected Short Stories of Roald Dahl"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 23.059125058352947
+          },
+          {
+            "query": "During Siege of Bharatpur, which Commander-in-Chief of Ireland and Commander-in-Chief of India contributed to the storming of the castle?",
+            "expected": [
+              "hotpotqa/Siege of Bharatpur"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Siege of Bharatpur",
+              "hotpotqa/Bharatpur district",
+              "hotpotqa/Claude Auchinleck"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 15.94987465068698
+          },
+          {
+            "query": "What occupation was shared by David Yates and Pietro Germi?",
+            "expected": [
+              "hotpotqa/David Yates"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/David Yates",
+              "hotpotqa/Ottavio Alessi",
+              "hotpotqa/Mrs. Bixby and the Colonel's Coat"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.247957669198513
+          },
+          {
+            "query": "Martin Patterson \"Pat\" Hingle was a close friend of an actor who achieved success in what Western TV series?",
+            "expected": [
+              "hotpotqa/Pat Hingle"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Pat Hingle",
+              "hotpotqa/Brian Cook (football administrator)",
+              "hotpotqa/Mirrors (film)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.696667160838842
+          },
+          {
+            "query": "Is the Marsilea or the Brabejum the genus of more individual species of plants?",
+            "expected": [
+              "hotpotqa/Marsilea"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Marsilea",
+              "hotpotqa/Cupressus",
+              "hotpotqa/Leptospermum"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 16.38358412310481
+          },
+          {
+            "query": "A scam involving a male calling small town fast-food restaurants and pretending to be a police officer to have them strip search employees was turned into a movie of what name?",
+            "expected": [
+              "hotpotqa/Compliance (film)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Compliance (film)",
+              "hotpotqa/Mirrors (film)",
+              "hotpotqa/Devyani Khobragade"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 16.103332862257957
+          },
+          {
+            "query": "Patrick Kennedy is known for his collections of Irish  folktales from a province situated in which part of Ireland ?",
+            "expected": [
+              "hotpotqa/Patrick Kennedy (folklorist)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Patrick Kennedy (folklorist)",
+              "hotpotqa/Irish Fairy Tales",
+              "hotpotqa/The Greek Princess and the Young Gardener"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 20.38895757868886
+          },
+          {
+            "query": "Which came to market first, \"Hey Pa! There's a Goat on the Roof\" or \"Poleconomy\"",
+            "expected": [
+              "hotpotqa/Hey Pa! There's a Goat on the Roof"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hey Pa! There's a Goat on the Roof",
+              "hotpotqa/The Hanging Tree",
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 21.469749975949526
+          },
+          {
+            "query": "Which American music star appeared as a guest in a Will & Grace episode called \"Back Up, Dancer\"?",
+            "expected": [
+              "hotpotqa/Back Up, Dancer"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Back Up, Dancer",
+              "hotpotqa/Alie Ward",
+              "hotpotqa/List of Demi Lovato live performances"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.595249779522419
+          },
+          {
+            "query": "What studio album did Kanye West record with Roc-A-Fella Records and soul singer Dwele?",
+            "expected": [
+              "hotpotqa/Power (Kanye West song)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Graduation (album)",
+              "hotpotqa/The College Dropout",
+              "hotpotqa/Hip Hop Since 1978"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 16.175707802176476
+          },
+          {
+            "query": "J\u00falius Satinsk\u00fd was born in a city that has a current population of what?",
+            "expected": [
+              "hotpotqa/J\u00falius Satinsk\u00fd"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/J\u00falius Satinsk\u00fd",
+              "hotpotqa/Ottavio Alessi",
+              "hotpotqa/Orbis Pictus (film)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 37.88654087111354
+          },
+          {
+            "query": "What city did the characters from Gargoyles the Movie: The Heroes Awaken wake up in after being in an enchantedly petrified state for a thousand years?",
+            "expected": [
+              "hotpotqa/Gargoyles the Movie: The Heroes Awaken"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Gargoyles the Movie: The Heroes Awaken",
+              "hotpotqa/Serafino (film)",
+              "hotpotqa/The Petrified Forest"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 26.16716595366597
+          },
+          {
+            "query": "Scott Sandelin grew up in a town in what Minnesota county?",
+            "expected": [
+              "hotpotqa/Scott Sandelin"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Scott Sandelin",
+              "hotpotqa/Scott County Transit",
+              "hotpotqa/Scott Irby-Ranniar"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.243375156074762
+          },
+          {
+            "query": "Erica Packer was the second wife of what Australian businessman?",
+            "expected": [
+              "hotpotqa/Erica Packer"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Erica Packer",
+              "hotpotqa/Alie Ward",
+              "hotpotqa/Amelia Cary, Viscountess Falkland"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 10.162875056266785
+          },
+          {
+            "query": "which is traditionally drunk before retiring to bed, Hot toddy or Kir?",
+            "expected": [
+              "hotpotqa/Hot toddy"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hot toddy (disambiguation)",
+              "hotpotqa/Hot toddy",
+              "hotpotqa/Love Drunk (Boys Like Girls song)"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 13.261624611914158
+          },
+          {
+            "query": "Who has more scope of profession, Phil Rosen or  Delmer Daves?",
+            "expected": [
+              "hotpotqa/Delmer Daves"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Delmer Daves",
+              "hotpotqa/Brian Cook (football administrator)",
+              "hotpotqa/Fels Institute of Government"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 26.159416884183884
+          },
+          {
+            "query": "What is the birthday of this Anglo-Irish actress, courtean, and mistress, who was the mother to the illegitimate daughter of King William IV?",
+            "expected": [
+              "hotpotqa/Elizabeth Hay, Countess of Erroll"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Lady Mary Fox",
+              "hotpotqa/Elizabeth Hay, Countess of Erroll",
+              "hotpotqa/Amelia Cary, Viscountess Falkland"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 24.731916841119528
+          },
+          {
+            "query": "During which years was the model of car, featured on the cover of Earth's \"Pentastar: In the Style of Demons\" manufactured?",
+            "expected": [
+              "hotpotqa/Pentastar: In the Style of Demons"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Pentastar: In the Style of Demons",
+              "hotpotqa/Chevrolet Corvette",
+              "hotpotqa/Nissan Cefiro"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.06408306583762
+          },
+          {
+            "query": "are the documentaries Out of Place and The Mosuo Sisters by the same director ?",
+            "expected": [
+              "hotpotqa/Out of Place"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Out of Place",
+              "hotpotqa/Sisters of Wellber",
+              "hotpotqa/Christmas in Paradise"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 54.04862482100725
+          },
+          {
+            "query": "Are Distortion Mirrors and OK Go both considered rock bands?",
+            "expected": [
+              "hotpotqa/Distortion Mirrors"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Distortion Mirrors",
+              "hotpotqa/Mirrors (film)",
+              "hotpotqa/OK Go (2000 EP)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 58.90283267945051
+          },
+          {
+            "query": "Flynn Rider is voiced by which American actor and singer born September 29, 1980?",
+            "expected": [
+              "hotpotqa/Flynn Rider"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Flynn Rider",
+              "hotpotqa/Mehrdad Raissi Ardali",
+              "hotpotqa/Dale D. Kelly"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 23.01454171538353
+          },
+          {
+            "query": "What was the occupation of the man who published an individualist anarchist journal?",
+            "expected": [
+              "hotpotqa/Moses Harman"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Henry Meulen",
+              "hotpotqa/Joe Peacott",
+              "hotpotqa/Moses Harman"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "latency_ms": 25.255165994167328
+          },
+          {
+            "query": "Which part of Scotland is this institute found where Alice K\u00f6nig is a lecturer in Latin and Classical Studies?",
+            "expected": [
+              "hotpotqa/Alice K\u00f6nig"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Alice K\u00f6nig",
+              "hotpotqa/Elizabeth Reid Boyd",
+              "hotpotqa/Vanier College at York University"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 38.065040949732065
+          },
+          {
+            "query": "The singer known as the \"Ballad Prince\" was on a romantic comedy that aired on what state-run channel from August 11 to September 30, 2010?",
+            "expected": [
+              "hotpotqa/My Girlfriend Is a Nine-Tailed Fox"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/It's Always Sunny in Philadelphia (season 6)",
+              "hotpotqa/Kanako Takatsuki",
+              "hotpotqa/Legends (Kelsea Ballerini song)"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.1,
+            "ndcg_at_10": 0.2890648263178879,
+            "latency_ms": 33.078457694500685
+          },
+          {
+            "query": "Which canal, Miami Canal or Dundee Canal, also supplies hydro-power and water for manufacturing?",
+            "expected": [
+              "hotpotqa/Miami Canal"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Miami Canal",
+              "hotpotqa/Kern Island Canal",
+              "hotpotqa/Carrier Canal"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 36.74254100769758
+          },
+          {
+            "query": "The Luther seal was designed for the professor of theology of what nationalty at the behest of John Frederick of Saxony?",
+            "expected": [
+              "hotpotqa/Luther rose"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Luther rose",
+              "hotpotqa/Frederick III, Elector of Saxony",
+              "hotpotqa/John Frederick II, Duke of Saxony"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.55558406189084
+          },
+          {
+            "query": "Which \"Mirrors\" actress made her film debut in the 2005 comedy film \"Hitch\"?",
+            "expected": [
+              "hotpotqa/Mirrors (film)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Mirrors (film)",
+              "hotpotqa/Rebecca Forstadt",
+              "hotpotqa/Th\u00e9r\u00e8se Raquin (1928 film)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 14.212207868695259
+          },
+          {
+            "query": "Who was the leading actor of the Christmas movie that Rebecca Forstadt did background voices for?",
+            "expected": [
+              "hotpotqa/Rebecca Forstadt"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Rebecca Forstadt",
+              "hotpotqa/Christmas in Paradise",
+              "hotpotqa/Nunnally Lamperouge"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.449041061103344
+          },
+          {
+            "query": "Casey Jr. Splash 'n' Soak Station is an attraction in a city located in which county ?",
+            "expected": [
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Casey Jr. Splash 'n' Soak Station",
+              "hotpotqa/Ray's Splash Planet",
+              "hotpotqa/Aqua Twist"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.347791861742735
+          },
+          {
+            "query": "Which WWE wrestler who performs on the Smackdown brand has his initials as part of the team \"Rated-RKO",
+            "expected": [
+              "hotpotqa/Rated-RKO"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Rated-RKO",
+              "hotpotqa/List of WWE Raw Tag Team Champions",
+              "hotpotqa/2008 WWE draft"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 13.017958030104637
+          },
+          {
+            "query": "What profession does H. L. Mencken and Albert Camus have in common?",
+            "expected": [
+              "hotpotqa/H. L. Mencken"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/H. L. Mencken",
+              "hotpotqa/Herbert Lottman",
+              "hotpotqa/The Rebel (book)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 14.323874842375517
+          },
+          {
+            "query": "What Japanese Auto Manufacturer headquarted in Minato, Tokyo, Japan did Nissan aquire controlling interest in?",
+            "expected": [
+              "hotpotqa/Mitsubishi Motors"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Mitsubishi Motors",
+              "hotpotqa/Prince Motor Company",
+              "hotpotqa/Nissan Cefiro"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 32.89133310317993
+          },
+          {
+            "query": "What is the name of one the ex-security officials that means The Institute?",
+            "expected": [
+              "hotpotqa/Commanders for Israel's Security"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Commanders for Israel's Security",
+              "hotpotqa/Fels Institute of Government",
+              "hotpotqa/Alice K\u00f6nig"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 18.62933300435543
+          },
+          {
+            "query": "Which author dedicated a 1985 romance novel to the author who did in 2009 and wrote under the pen name Gwyneth Moore?",
+            "expected": [
+              "hotpotqa/A Company of Swans"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cherry Ripe (novel)",
+              "hotpotqa/The Collected Short Stories of Roald Dahl",
+              "hotpotqa/Elizabeth Reid Boyd"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.1,
+            "ndcg_at_10": 0.2890648263178879,
+            "latency_ms": 23.101582657545805
+          },
+          {
+            "query": "Is the building located at 200 West Street taller than the one at 888 7th Avenue?",
+            "expected": [
+              "hotpotqa/888 7th Avenue"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/888 7th Avenue",
+              "hotpotqa/West Street District",
+              "hotpotqa/Random House Tower"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.933541771024466
+          },
+          {
+            "query": "Who had the lowest vocal range in Cosmos?",
+            "expected": [
+              "hotpotqa/Cosmos (band)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Cosmos (band)",
+              "hotpotqa/List of contraltos in non-classical music",
+              "hotpotqa/Cosmos Holidays"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 32.85887511447072
+          },
+          {
+            "query": "Which of the music composed for Operation Amsterdam originated in the middle of the 19th century in Bohemia, now part of the Czech Republic?",
+            "expected": [
+              "hotpotqa/Operation Amsterdam"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Operation Amsterdam",
+              "hotpotqa/Czech Renaissance architecture",
+              "hotpotqa/Bohemian"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 35.23075021803379
+          },
+          {
+            "query": "The producer of the Eric Church album \"The Outsiders\" was a member of what band in the 1980's?",
+            "expected": [
+              "hotpotqa/The Outsiders (Eric Church album)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/The Outsiders (Eric Church album)",
+              "hotpotqa/Cold One",
+              "hotpotqa/Against the Wind (album)"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 15.368458814918995
+          },
+          {
+            "query": "Where is the seminar Jeanne Marie Beaumont directed in 2007-2010 located?",
+            "expected": [
+              "hotpotqa/Jeanne Marie Beaumont"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Jeanne Marie Beaumont",
+              "hotpotqa/Jeanne Golay",
+              "hotpotqa/Alice K\u00f6nig"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 48.93000004813075
+          },
+          {
+            "query": "The True Colors World Tour was by what artist whose debut album was \"She's So Unusual\"?",
+            "expected": [
+              "hotpotqa/True Colors World Tour"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/True Colors World Tour",
+              "hotpotqa/List of Beyonc\u00e9 live performances",
+              "hotpotqa/List of Demi Lovato live performances"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 23.001250345259905
+          },
+          {
+            "query": "Shani Gandi has worked with Kelsea Ballerini in what country?",
+            "expected": [
+              "hotpotqa/Shani Gandhi"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Shani Gandhi",
+              "hotpotqa/Kishori Ballal",
+              "hotpotqa/Devyani Khobragade"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 28.039792086929083
+          },
+          {
+            "query": "This man who was born on April 25th, 1947, was a member of this lower house of the Hawaii State Legislature.",
+            "expected": [
+              "hotpotqa/Robert Bunda"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Hawaii State Legislature",
+              "hotpotqa/Robert Bunda",
+              "hotpotqa/Romeo Munoz Cachola"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 37.90287487208843
+          },
+          {
+            "query": "What county in Minnesota holds a 202 lb slab of greywacke covered in runes?",
+            "expected": [
+              "hotpotqa/Kensington, Minnesota"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Bridge No. 3355-Kathio Township",
+              "hotpotqa/Scott County Transit",
+              "hotpotqa/Kensington, Minnesota"
+            ],
+            "recall_at_1": 0.0,
+            "mrr": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "latency_ms": 38.17062499001622
+          },
+          {
+            "query": "Billy Preston is an American college basketball player for a team that competes in what?",
+            "expected": [
+              "hotpotqa/Billy Preston (basketball)"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Billy Preston (basketball)",
+              "hotpotqa/Terry Holland",
+              "hotpotqa/Walter Hirsch"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 104.42200023680925
+          },
+          {
+            "query": "About whose assassination is the French novel HHhH based?",
+            "expected": [
+              "hotpotqa/HHhH"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/HHhH",
+              "hotpotqa/The Rebel (book)",
+              "hotpotqa/Marcel Trillat"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 12.854207772761583
+          },
+          {
+            "query": "What was the lead single from Boys Like Girls album on which frontman, Martin Johnson co-wrote a song with Taylor Swift? A: Love Drunk",
+            "expected": [
+              "hotpotqa/Love Drunk"
+            ],
+            "retrieved_top3": [
+              "hotpotqa/Love Drunk",
+              "hotpotqa/Love Drunk (Boys Like Girls song)",
+              "hotpotqa/Heart Heart Heartbreak"
+            ],
+            "recall_at_1": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 45.2824579551816
+          }
+        ]
+      },
+      "delta": {
+        "recall_at_1": 0.02,
+        "recall_at_5": 0.02,
+        "recall_at_10": 0.04,
+        "mrr": 0.0199,
+        "ndcg_at_10": 0.0258,
+        "avg_latency_ms": 5.27
+      },
+      "regressions_count": 0,
+      "regressions": []
+    },
+    "cortex_eval_v1": {
+      "baseline": {
+        "recall_at_1": 0.7,
+        "recall_at_5": 0.96,
+        "recall_at_10": 1.0,
+        "mrr": 0.87,
+        "ndcg_at_10": 0.8959635263143635,
+        "avg_latency_ms": 9.020464923232794,
+        "query_count": 25,
+        "per_query_results": [
+          {
+            "id": "retrieval_01_hybrid_rrf",
+            "query": "how does hybrid retrieval fuse dense vectors with bm25",
+            "category": "hybrid_core",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-01.md",
+              "Retrieval.md",
+              "Embeddings.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 30.035917181521654
+          },
+          {
+            "id": "retrieval_02_embeddings_concept",
+            "query": "what is semantic vector similarity in continuous space",
+            "category": "dense_semantic",
+            "expected": [
+              "Embeddings.md"
+            ],
+            "retrieved_top3": [
+              "Embeddings.md",
+              "daily/2026-08-01.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.148415945470333
+          },
+          {
+            "id": "retrieval_03_lancedb_storage",
+            "query": "why use lancedb instead of a server vector database",
+            "category": "lexical_exact",
+            "expected": [
+              "Vector Databases.md"
+            ],
+            "retrieved_top3": [
+              "Vector Databases.md",
+              "Distractor Search.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 19.181292038410902
+          },
+          {
+            "id": "retrieval_04_thermal_fanless",
+            "query": "how does cortex prevent macbook air from getting hot during indexing",
+            "category": "dense_semantic",
+            "expected": [
+              "Thermal Management.md"
+            ],
+            "retrieved_top3": [
+              "Thermal Management.md",
+              "daily/2026-08-15.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.267833851277828
+          },
+          {
+            "id": "retrieval_05_graph_expansion",
+            "query": "how does wikilink traversal find second order context",
+            "category": "wikilink_graph",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "daily/2026-08-01.md",
+              "Distractor Search.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.59470821544528
+          },
+          {
+            "id": "baking_01_starter_feeding",
+            "query": "how often should I feed the sourdough starter and bulk ferment",
+            "category": "lexical_exact",
+            "expected": [
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Sourdough.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.426290936768055
+          },
+          {
+            "id": "baking_02_gluten_matrix",
+            "query": "what proteins form the viscoelastic gluten structure in flour",
+            "category": "dense_semantic",
+            "expected": [
+              "Flour Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Pectin Chains.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.636458147317171
+          },
+          {
+            "id": "baking_03_amylase_enzymes",
+            "query": "alpha-amylase enzyme starch breakdown into maltose",
+            "category": "lexical_exact",
+            "expected": [
+              "Flour Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Fermentation Chemistry.md",
+              "Sourdough.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.109667174518108
+          },
+          {
+            "id": "biochem_01_fermentation_kinetics",
+            "query": "polysaccharide breakdown and metabolic pathways lowering pH",
+            "category": "dense_semantic",
+            "expected": [
+              "Fermentation Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.204332854598761
+          },
+          {
+            "id": "biochem_02_pectin_esterification",
+            "query": "galacturonic acid methyl esterification and gelling properties",
+            "category": "lexical_exact",
+            "expected": [
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Pectin Chains.md",
+              "Flour Chemistry.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.135750260204077
+          },
+          {
+            "id": "biochem_03_pectinase_fruit",
+            "query": "what enzymes break down cell walls during fruit ripening",
+            "category": "multi_topic",
+            "expected": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 6.982082966715097
+          },
+          {
+            "id": "baking_04_bread_fermentation_link",
+            "query": "how sourdough fermentation relates to grain flour enzymes",
+            "category": "multi_topic",
+            "expected": [
+              "Flour Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Sourdough.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.066374808549881
+          },
+          {
+            "id": "temporal_01_aug_1_planning",
+            "query": "what did I decide on 2026-08-01 about wikilink graphs",
+            "category": "temporal_query",
+            "expected": [
+              "daily/2026-08-01.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "daily/2026-08-01.md",
+              "Distractor Search.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 7.879415992647409
+          },
+          {
+            "id": "temporal_02_aug_15_benchmarks",
+            "query": "what metrics did I implement on 2026-08-15",
+            "category": "temporal_query",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-15.md",
+              "Thermal Management.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.295416668057442
+          },
+          {
+            "id": "temporal_03_query_expansion_work",
+            "query": "when did I work on local query expansion without llm",
+            "category": "dense_semantic",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "Distractor Search.md",
+              "Retrieval.md",
+              "daily/2026-08-15.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.3333333333333333,
+            "ndcg_at_10": 0.5,
+            "latency_ms": 6.701583042740822
+          },
+          {
+            "id": "distractor_01_sql_vs_vector",
+            "query": "how do relational b-tree indexes compare to postgres sql query planning",
+            "category": "distractor_resistance",
+            "expected": [
+              "Distractor Search.md"
+            ],
+            "retrieved_top3": [
+              "Distractor Search.md",
+              "Vector Databases.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.910707965493202
+          },
+          {
+            "id": "distractor_02_vector_indexing_only",
+            "query": "fast approximate nearest neighbor vector indexing on disk",
+            "category": "distractor_resistance",
+            "expected": [
+              "Vector Databases.md"
+            ],
+            "retrieved_top3": [
+              "Vector Databases.md",
+              "daily/2026-08-01.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.0658751539886
+          },
+          {
+            "id": "paraphrase_01_keep_data_local",
+            "query": "privacy guarantees for private vault notes never leaving computer",
+            "category": "dense_semantic",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-15.md",
+              "Thermal Management.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 7.955082692205906
+          },
+          {
+            "id": "paraphrase_02_cpu_heat_throttling",
+            "query": "pmset speed limit drops when mac heats up",
+            "category": "dense_semantic",
+            "expected": [
+              "Thermal Management.md"
+            ],
+            "retrieved_top3": [
+              "Thermal Management.md",
+              "daily/2026-08-15.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.465207647532225
+          },
+          {
+            "id": "paraphrase_03_high_protein_flour",
+            "query": "best flour protein percentage for sourdough baking",
+            "category": "multi_topic",
+            "expected": [
+              "Flour Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Sourdough.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.069708313792944
+          },
+          {
+            "id": "paraphrase_04_qwen_embedding_speed",
+            "query": "small dense embedding models with low latency and state of the art mteb",
+            "category": "dense_semantic",
+            "expected": [
+              "Embeddings.md"
+            ],
+            "retrieved_top3": [
+              "Embeddings.md",
+              "Vector Databases.md",
+              "daily/2026-08-15.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.440750021487474
+          },
+          {
+            "id": "paraphrase_05_calcium_binding_gels",
+            "query": "calcium binding capacity in plant polysaccharides",
+            "category": "dense_semantic",
+            "expected": [
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Pectin Chains.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.046791724860668
+          },
+          {
+            "id": "paraphrase_06_wild_yeast_microbiology",
+            "query": "lactic acid bacteria and wild yeast symbiosis",
+            "category": "multi_topic",
+            "expected": [
+              "Fermentation Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Sourdough.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.494667079299688
+          },
+          {
+            "id": "paraphrase_07_bidirectional_links",
+            "query": "why avoid heavy graphrag in favor of bidirectional obsidian links",
+            "category": "wikilink_graph",
+            "expected": [
+              "Retrieval.md",
+              "daily/2026-08-01.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "Distractor Search.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 0.8503449055347546,
+            "latency_ms": 7.184834219515324
+          },
+          {
+            "id": "paraphrase_08_incremental_hash_skipping",
+            "query": "how content hashing skips unmodified files during re-indexing",
+            "category": "dense_semantic",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "Vector Databases.md",
+              "Distractor Search.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 0.0,
+            "mrr": 0.16666666666666666,
+            "ndcg_at_10": 0.3562071871080222,
+            "latency_ms": 7.212458178400993
+          }
+        ]
+      },
+      "fine_tuned": {
+        "recall_at_1": 0.7,
+        "recall_at_5": 0.96,
+        "recall_at_10": 1.0,
+        "mrr": 0.8766666666666667,
+        "ndcg_at_10": 0.9022755328493536,
+        "avg_latency_ms": 10.076466668397188,
+        "query_count": 25,
+        "per_query_results": [
+          {
+            "id": "retrieval_01_hybrid_rrf",
+            "query": "how does hybrid retrieval fuse dense vectors with bm25",
+            "category": "hybrid_core",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-01.md",
+              "Retrieval.md",
+              "Embeddings.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 33.248167019337416
+          },
+          {
+            "id": "retrieval_02_embeddings_concept",
+            "query": "what is semantic vector similarity in continuous space",
+            "category": "dense_semantic",
+            "expected": [
+              "Embeddings.md"
+            ],
+            "retrieved_top3": [
+              "Embeddings.md",
+              "daily/2026-08-01.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.840958122164011
+          },
+          {
+            "id": "retrieval_03_lancedb_storage",
+            "query": "why use lancedb instead of a server vector database",
+            "category": "lexical_exact",
+            "expected": [
+              "Vector Databases.md"
+            ],
+            "retrieved_top3": [
+              "Vector Databases.md",
+              "Distractor Search.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 26.138249784708023
+          },
+          {
+            "id": "retrieval_04_thermal_fanless",
+            "query": "how does cortex prevent macbook air from getting hot during indexing",
+            "category": "dense_semantic",
+            "expected": [
+              "Thermal Management.md"
+            ],
+            "retrieved_top3": [
+              "Thermal Management.md",
+              "daily/2026-08-15.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 10.360832791775465
+          },
+          {
+            "id": "retrieval_05_graph_expansion",
+            "query": "how does wikilink traversal find second order context",
+            "category": "wikilink_graph",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "daily/2026-08-01.md",
+              "Distractor Search.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.898416999727488
+          },
+          {
+            "id": "baking_01_starter_feeding",
+            "query": "how often should I feed the sourdough starter and bulk ferment",
+            "category": "lexical_exact",
+            "expected": [
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Sourdough.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.135459084063768
+          },
+          {
+            "id": "baking_02_gluten_matrix",
+            "query": "what proteins form the viscoelastic gluten structure in flour",
+            "category": "dense_semantic",
+            "expected": [
+              "Flour Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Pectin Chains.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.913957979530096
+          },
+          {
+            "id": "baking_03_amylase_enzymes",
+            "query": "alpha-amylase enzyme starch breakdown into maltose",
+            "category": "lexical_exact",
+            "expected": [
+              "Flour Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 10.474790818989277
+          },
+          {
+            "id": "biochem_01_fermentation_kinetics",
+            "query": "polysaccharide breakdown and metabolic pathways lowering pH",
+            "category": "dense_semantic",
+            "expected": [
+              "Fermentation Chemistry.md"
+            ],
+            "retrieved_top3": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.933083783835173
+          },
+          {
+            "id": "biochem_02_pectin_esterification",
+            "query": "galacturonic acid methyl esterification and gelling properties",
+            "category": "lexical_exact",
+            "expected": [
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Pectin Chains.md",
+              "Flour Chemistry.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.804166059941053
+          },
+          {
+            "id": "biochem_03_pectinase_fruit",
+            "query": "what enzymes break down cell walls during fruit ripening",
+            "category": "multi_topic",
+            "expected": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Fermentation Chemistry.md",
+              "Pectin Chains.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.6327091082930565
+          },
+          {
+            "id": "baking_04_bread_fermentation_link",
+            "query": "how sourdough fermentation relates to grain flour enzymes",
+            "category": "multi_topic",
+            "expected": [
+              "Flour Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Sourdough.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.32420913502574
+          },
+          {
+            "id": "temporal_01_aug_1_planning",
+            "query": "what did I decide on 2026-08-01 about wikilink graphs",
+            "category": "temporal_query",
+            "expected": [
+              "daily/2026-08-01.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "daily/2026-08-01.md",
+              "daily/2026-08-15.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 8.08262499049306
+          },
+          {
+            "id": "temporal_02_aug_15_benchmarks",
+            "query": "what metrics did I implement on 2026-08-15",
+            "category": "temporal_query",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-15.md",
+              "Thermal Management.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.933042012155056
+          },
+          {
+            "id": "temporal_03_query_expansion_work",
+            "query": "when did I work on local query expansion without llm",
+            "category": "dense_semantic",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "Distractor Search.md",
+              "daily/2026-08-15.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.5,
+            "ndcg_at_10": 0.6309297535714575,
+            "latency_ms": 8.019582834094763
+          },
+          {
+            "id": "distractor_01_sql_vs_vector",
+            "query": "how do relational b-tree indexes compare to postgres sql query planning",
+            "category": "distractor_resistance",
+            "expected": [
+              "Distractor Search.md"
+            ],
+            "retrieved_top3": [
+              "Distractor Search.md",
+              "Vector Databases.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 8.212458807975054
+          },
+          {
+            "id": "distractor_02_vector_indexing_only",
+            "query": "fast approximate nearest neighbor vector indexing on disk",
+            "category": "distractor_resistance",
+            "expected": [
+              "Vector Databases.md"
+            ],
+            "retrieved_top3": [
+              "Vector Databases.md",
+              "daily/2026-08-01.md",
+              "Retrieval.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.177209015935659
+          },
+          {
+            "id": "paraphrase_01_keep_data_local",
+            "query": "privacy guarantees for private vault notes never leaving computer",
+            "category": "dense_semantic",
+            "expected": [
+              "Retrieval.md"
+            ],
+            "retrieved_top3": [
+              "daily/2026-08-15.md",
+              "Thermal Management.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 1.0,
+            "mrr": 0.25,
+            "ndcg_at_10": 0.43067655807339306,
+            "latency_ms": 8.233499713242054
+          },
+          {
+            "id": "paraphrase_02_cpu_heat_throttling",
+            "query": "pmset speed limit drops when mac heats up",
+            "category": "dense_semantic",
+            "expected": [
+              "Thermal Management.md"
+            ],
+            "retrieved_top3": [
+              "Thermal Management.md",
+              "daily/2026-08-15.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 9.06129227951169
+          },
+          {
+            "id": "paraphrase_03_high_protein_flour",
+            "query": "best flour protein percentage for sourdough baking",
+            "category": "multi_topic",
+            "expected": [
+              "Flour Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Flour Chemistry.md",
+              "Sourdough.md",
+              "Fermentation Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.789708208292723
+          },
+          {
+            "id": "paraphrase_04_qwen_embedding_speed",
+            "query": "small dense embedding models with low latency and state of the art mteb",
+            "category": "dense_semantic",
+            "expected": [
+              "Embeddings.md"
+            ],
+            "retrieved_top3": [
+              "Embeddings.md",
+              "Vector Databases.md",
+              "daily/2026-08-15.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.394999731332064
+          },
+          {
+            "id": "paraphrase_05_calcium_binding_gels",
+            "query": "calcium binding capacity in plant polysaccharides",
+            "category": "dense_semantic",
+            "expected": [
+              "Pectin Chains.md"
+            ],
+            "retrieved_top3": [
+              "Pectin Chains.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 1.0,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.942416239529848
+          },
+          {
+            "id": "paraphrase_06_wild_yeast_microbiology",
+            "query": "lactic acid bacteria and wild yeast symbiosis",
+            "category": "multi_topic",
+            "expected": [
+              "Fermentation Chemistry.md",
+              "Sourdough.md"
+            ],
+            "retrieved_top3": [
+              "Sourdough.md",
+              "Fermentation Chemistry.md",
+              "Flour Chemistry.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 1.0,
+            "latency_ms": 7.065291050821543
+          },
+          {
+            "id": "paraphrase_07_bidirectional_links",
+            "query": "why avoid heavy graphrag in favor of bidirectional obsidian links",
+            "category": "wikilink_graph",
+            "expected": [
+              "Retrieval.md",
+              "daily/2026-08-01.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "Distractor Search.md",
+              "Vector Databases.md"
+            ],
+            "recall_at_1": 0.5,
+            "recall_at_5": 1.0,
+            "mrr": 1.0,
+            "ndcg_at_10": 0.8772153153380493,
+            "latency_ms": 7.614207919687033
+          },
+          {
+            "id": "paraphrase_08_incremental_hash_skipping",
+            "query": "how content hashing skips unmodified files during re-indexing",
+            "category": "dense_semantic",
+            "expected": [
+              "daily/2026-08-15.md"
+            ],
+            "retrieved_top3": [
+              "Retrieval.md",
+              "Vector Databases.md",
+              "daily/2026-08-01.md"
+            ],
+            "recall_at_1": 0.0,
+            "recall_at_5": 0.0,
+            "mrr": 0.16666666666666666,
+            "ndcg_at_10": 0.3562071871080222,
+            "latency_ms": 7.680333219468594
+          }
+        ]
+      },
+      "delta": {
+        "recall_at_1": 0.0,
+        "recall_at_5": 0.0,
+        "recall_at_10": 0.0,
+        "mrr": 0.0067,
+        "ndcg_at_10": 0.0063,
+        "avg_latency_ms": 1.06
+      },
+      "regressions_count": 0,
+      "regressions": []
+    }
+  },
+  "recommendation": {
+    "verdict": "INVESTIGATE",
+    "rationale": "Fine-tuning demonstrated solid metric retention/gains on retrieval with minimal regression. Recommend further investigation with scaling and domain weighting before replacing production defaults."
+  }
+}
