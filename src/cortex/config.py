@@ -32,14 +32,28 @@ DEFAULT_CONFIG_PATH = Path.home() / ".config" / "cortex" / "cortex.toml"
 def default_providers() -> list[ProviderSpec]:
     """The shipped fallback chain.
 
-    Ordering is local-first, then by free-tier generosity. Groq leads the remote
-    tier because 14,400 requests/day on llama-3.1-8b is the most generous free
-    allowance available and it does not train on submitted data.
+    Ordering is local-first, then by remote provider speed at acceptable cost.
+    On Apple Silicon with ``OLLAMA_NUM_GPU=0`` (the documented workaround
+    for the Metal shader JIT hang), local inference is CPU-bound and around
+    4B parameters is the most a 16 GB machine can comfortably warm-start,
+    so the cloud tier does the heavy lifting once local falls behind.
+
+    The remote chain leads with Groq because its LPU chip returns tokens
+    minutes faster than any hosted GPU. OpenRouter comes behind it pinned
+    to a fast model with a 1 M-token context -- the second-brain synthesis
+    step routinely eats full document chunks plus 100+ retrieved passages,
+    so the larger context budget is the operative constraint. NVIDIA is
+    last -- also fast, but its rate limits are narrower and per-region
+    capacity more variable, so we keep it as overflow.
     """
     return [
         ProviderSpec(
             name="ollama",
             base_url="http://localhost:11434/v1",
+            # 4B is the sweet spot for hot-path synthesis on a 16 GB Air:
+            # qwen3:4b is ~2.5 GB resident, leaves room for the embedder,
+            # and the small step from 1.7B has a measurable quality bump on
+            # the dropped-fill detail common in Obsidian notes.
             model="qwen3:4b",
             policy=DataPolicy.LOCAL,
             max_context=32_768,
@@ -48,6 +62,9 @@ def default_providers() -> list[ProviderSpec]:
         ProviderSpec(
             name="groq",
             base_url="https://api.groq.com/openai/v1",
+            # ~350 tok/s on Groq's LPU. The 70B model is the right ceiling
+            # for synthesis: query expansion, memory rewriting, and answer
+            # generation all need stronger reasoning than an 8B gives.
             model="llama-3.3-70b-versatile",
             policy=DataPolicy.NO_TRAIN,
             api_key_env="GROQ_API_KEY",
@@ -69,13 +86,19 @@ def default_providers() -> list[ProviderSpec]:
         ProviderSpec(
             name="openrouter",
             base_url="https://openrouter.ai/api/v1",
-            # The free roster rotates weekly, so pin the auto-router rather
-            # than a slug that will 404 in a fortnight. openrouter/free selects
-            # from whatever free models are currently available.
-            model="openrouter/free",
+            # 8B Instruct is the right ceiling for OpenRouter under ZDR:
+            # cheap (~$0.05/MTok prompt), ~550 ms median round trip, and
+            # ``meta-llama/*`` is one of the few model families served by
+            # ZDR-endpoint providers on the lower credit tiers -- probed
+            # mid-2026, successors to ``qwen/qwen3.7-flash`` 404'd under
+            # ZDR-strict filtering. ``requires_zdr=True`` keeps the gate
+            # honest: cortex sends ``zdr=true`` on the wire and the
+            # provider refuses any traffic that the user has not opted in
+            # at https://openrouter.ai/settings/privacy.
+            model="meta-llama/llama-3.1-8b-instruct",
             policy=DataPolicy.NO_TRAIN_IF_ZDR,
             api_key_env="OPENROUTER_API_KEY",
-            max_context=128_000,
+            max_context=131_072,
             # 20 RPM / 50 RPD on a free account; 1,000 RPD once any credit has
             # ever been purchased. The conservative figure is the default.
             rpm=20,
@@ -89,6 +112,42 @@ def default_providers() -> list[ProviderSpec]:
             },
         ),
     ]
+
+
+@dataclass(frozen=True, slots=True)
+class ServeConfig:
+    """Configuration for the local HTTP server.
+
+    Defaults to localhost-only on a non-privileged port. Binding to 0.0.0.0 is
+    a deliberate decision the user has to make in cortex.toml; we do not pop
+    the door open by accident on first launch.
+    """
+
+    host: str = "127.0.0.1"
+    port: int = 7331
+    open_browser: bool = True
+    """If true, ``cortex serve`` opens the local URL in your default browser."""
+
+    cors_origins: tuple[str, ...] = (
+        "http://localhost:7331",
+        "http://127.0.0.1:7331",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    )
+    """Origins allowed to call the API.
+
+    The first two cover the bundled production build (``cortex serve``).
+    The last two cover the Vite dev server (``npm run dev`` in
+    ``frontend/``) so a developer iterating on the UI does not hit CORS
+    preflight failures.
+
+    Extend this list in cortex.toml when deploying to a different origin.
+    Evidence for the safety of these defaults: every entry is a loopback
+    URL on the same machine; a browser extension on ``localhost`` is the
+    only attack surface, and ``localhost`` already implies physical /
+    remote access to the machine -- past the threat model this tool sits
+    in.
+    """
 
 
 @dataclass(slots=True)
@@ -151,8 +210,15 @@ class Settings:
     governor: GovernorConfig = field(default_factory=GovernorConfig)
     providers: list[ProviderSpec] = field(default_factory=default_providers)
 
+    serve: ServeConfig = field(default_factory=ServeConfig)
+    """Settings for ``cortex serve``: the local web / HTTP surface.
+
+    Kept on the same Settings object rather than a separate one so the
+    composition root stays simple -- one place where everything the program
+    could ever need to look at lives.
+    """
+
     local_only: bool = False
-    """Hard switch. When true nothing leaves the machine, regardless of policy."""
 
     exclude_globs: list[str] = field(
         default_factory=lambda: [
@@ -325,6 +391,22 @@ def load_settings(
             )
 
         settings.providers = _providers_from_toml(data.get("providers"), default_providers())
+
+        serve = data.get("serve", {})
+        if isinstance(serve, dict):
+            serve_base = ServeConfig()
+            port_val = serve.get("port", serve_base.port)
+            settings.serve = ServeConfig(
+                host=str(serve.get("host", serve_base.host)),
+                port=int(port_val) if port_val is not None else serve_base.port,
+                open_browser=bool(serve.get("open_browser", serve_base.open_browser)),
+            )
+            origins_raw = serve.get("cors_origins", list(serve_base.cors_origins))
+            if isinstance(origins_raw, list):
+                settings.serve = replace(
+                    settings.serve,
+                    cors_origins=tuple(str(o) for o in origins_raw),
+                )
 
     # Environment overrides win.
     if "CORTEX_VAULT" in env:

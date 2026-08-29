@@ -65,18 +65,58 @@ critical_speed_limit = 60
 min_battery_for_backfill = 30
 sample_interval = 10.0
 
+[serve]
+# Settings for `cortex serve` -- the local web app (chat + voice + vault view).
+# Defaults assume you only ever reach it from the same machine; bind 0.0.0.0
+# only if you actually want other devices on the LAN talking to it, and then
+# only on a trusted network. There is no auth -- this is a single-user tool.
+host = "127.0.0.1"
+port = 7331
+open_browser = true
+# cors_origins = ["http://localhost:7331", "http://localhost:5173"]  # add origins here
+
 # Providers patch the shipped defaults -- name an existing one to override
 # single fields, or give base_url + model to add a new endpoint.
+#
+# Shipped chain (priority is "lower sorts earlier"):
+#   * ollama    -- local qwen3:4b. Hot path; ~no remote latency when the
+#                 model is already resident. On Apple Silicon without the
+#                 Metal JIT hang fix (``OLLAMA_NUM_GPU=0``), this is
+#                 CPU-only -- still very fast for short completions.
+#   * groq      -- llama-3.3-70b-versatile on the LPU. ~350 tok/s. Best
+#                 quality-per-second at this tier; default for synthesis
+#                 that doesn't fit the local context window.
+#   * nvidia    -- Llama-3.3-70B-Instruct on NVIDIA NIM. Overflow when
+#                 Groq is rate-limited; same capability, slower.
+#   * openrouter -- llama-3.1-8b-instruct with the ZDR contract enforced
+#                 on the wire. Pinned (not ``openrouter/free``) so the
+#                 model identifier survives the weekly free roster
+#                 rotation. ``meta-llama/*`` is one of the few model
+#                 families consistently served by ZDR-endpoint providers
+#                 on the lower credit tiers.
+#
+# On a fresh install, set the OPENROUTER ZDR contract before sending
+# private notes through it:
 #
 # [[providers]]
 # name = "openrouter"
 # zdr_enabled = true      # ONLY after enabling zero-data-retention on your account
 #
+# To upgrade local hot-path capacity for a beefier machine, swap
+# the ollama model here without touching the shipped defaults:
+#
 # [[providers]]
-# name = "cerebras"
+# name = "ollama"
+# model = "qwen3:8b"
+# priority = 0
+#
+# Adding a new endpoint (e.g. Cerebras) follows the same shape -- name
+# anything not in the shipped chain and we append it:
+#
+# [[providers]]
 # base_url = "https://api.cerebras.ai/v1"
-# model = "llama3.1-8b"
+# model = "llama-3.3-70b"
 # policy = "no_train"
 # api_key_env = "CEREBRAS_API_KEY"
-# tpd = 1000000
+# rpm = 30
 # priority = 15

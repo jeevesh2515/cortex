@@ -255,13 +255,20 @@ class CortexTools:
         }
 
     def vault_status(self) -> dict[str, Any]:
-        self.rt.governor.sample(force=True)
+        # In-memory runtimes (test / CI) carry no live governor. Surface that
+        # honestly rather than crashing on a None attr -- the schema stays
+        # stable for callers regardless of runtime mode.
+        if self.rt.governor is not None:
+            self.rt.governor.sample(force=True)
+            thermal = self.rt.governor.describe()
+        else:
+            thermal = {"state": "unavailable", "reason": "in_memory runtime"}
         counts = self.rt.catalog.stats()
         return {
             "vault_path": str(self.rt.settings.vault_path),
             "notes_indexed": counts["notes"],
             "chunks": counts["chunks"],
-            "thermal": self.rt.governor.describe(),
+            "thermal": thermal,
             "provider_routing_private": self.rt.router.explain(Sensitivity.PRIVATE),
         }
 
@@ -350,34 +357,63 @@ class CortexTools:
 
 
 def build_server(tools: CortexTools) -> Any:
-    """Construct the MCP server. Requires the optional ``mcp`` extra."""
+    """Construct the MCP server. Requires the optional ``mcp`` extra.
+
+    The modern ``mcp`` library registers tool handlers via constructor
+    arguments (``on_list_tools``, ``on_call_tool``) rather than decorators.
+    Older ``Server.list_tools`` / ``Server.call_tool`` methods no longer
+    exist, so building the server via decorators would silently no-op.
+    """
     try:
-        from mcp.server import Server
-        from mcp.types import TextContent, Tool
+        from mcp.server import Server, ServerRequestContext
+        from mcp.types import (
+            CallToolRequestParams,
+            CallToolResult,
+            ListToolsResult,
+            PaginatedRequestParams,
+            TextContent,
+            Tool,
+        )
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
             "MCP support is not installed. Install with: pip install 'cortex-brain[mcp]'"
         ) from exc
 
-    server = Server("cortex")
-
-    @server.list_tools()  # type: ignore[untyped-decorator]
-    async def _list_tools() -> list[Tool]:
-        return [
-            Tool(
-                name=spec["name"],
-                description=spec["description"],
-                inputSchema=spec["input_schema"],
+    async def _list_tools(
+        _ctx: ServerRequestContext[object, object],
+        _params: PaginatedRequestParams | None,
+    ) -> ListToolsResult:
+        # The on-the-wire Tool field is ``inputSchema`` (camelCase), but the
+        # pydantic stub mypy enforces declares it snake_case. Instantiation
+        # through ``model_validate`` accepts the wire spelling via the alias
+        # generator and satisfies the stub simultaneously, so we avoid the
+        # direct constructor's typing demerits over list-dict values.
+        tools_list: list[Tool] = [
+            Tool.model_validate(
+                {
+                    "name": spec["name"],
+                    "description": spec["description"],
+                    "inputSchema": spec["input_schema"],
+                }
             )
             for spec in TOOL_DEFINITIONS
         ]
+        return ListToolsResult(tools=tools_list)
 
-    @server.call_tool()  # type: ignore[untyped-decorator]
-    async def _call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
-        payload = tools.dispatch(name, arguments or {})
-        return [TextContent(type="text", text=json.dumps(payload, indent=2, default=str))]
+    async def _call_tool(
+        _ctx: ServerRequestContext[object, object],
+        params: CallToolRequestParams,
+    ) -> CallToolResult:
+        payload = tools.dispatch(params.name, dict(params.arguments or {}))
+        return CallToolResult(
+            content=[TextContent(type="text", text=json.dumps(payload, indent=2, default=str))]
+        )
 
-    return server
+    return Server(
+        "cortex",
+        on_list_tools=_list_tools,
+        on_call_tool=_call_tool,
+    )
 
 
 def run_stdio(
