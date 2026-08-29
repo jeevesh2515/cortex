@@ -106,8 +106,9 @@ cd cortex
 # 2. Install editable package
 pip install -e .
 
-# 3. Query sample vault using offline deterministic embedder
-cortex query "What are the notes on pectin and fermentation?" --offline
+# 3. Search sample vault (offline, no model needed) — or synthesize an answer
+cortex search "pectin and fermentation" --vault examples/sample-vault --offline
+# cortex ask "What are the notes on pectin and fermentation?" --vault examples/sample-vault --offline
 ```
 
 ---
