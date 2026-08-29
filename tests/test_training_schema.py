@@ -109,9 +109,7 @@ class TestEvalAssetFingerprints:
                     f"  expected: {expected_hash}\n"
                     f"  actual:   {actual_hash}"
                 )
-        assert not failures, (
-            "Baseline asset integrity check failed:\n" + "\n".join(failures)
-        )
+        assert not failures, "Baseline asset integrity check failed:\n" + "\n".join(failures)
 
     def test_eval_positive_ids_loaded(self) -> None:
         """Schema must load at least the 11 known eval positive IDs."""
@@ -160,9 +158,7 @@ class TestValidTrainingExample:
         ex = _make_valid_example()
         assert ex.split == "train"
         assert ex.creation_method == "mined_bm25"
-        assert ex.training_id == compute_training_id(
-            ex.query, ex.positive_id, ex.creation_method
-        )
+        assert ex.training_id == compute_training_id(ex.query, ex.positive_id, ex.creation_method)
 
     def test_valid_synthetic_llm_example(self) -> None:
         ex = _make_valid_example(
@@ -208,9 +204,7 @@ class TestRuleL1QueryIsolation:
             _make_valid_example(query=eval_query)
 
     def test_novel_query_accepted(self) -> None:
-        ex = _make_valid_example(
-            query="completely novel query string not in eval set at all"
-        )
+        ex = _make_valid_example(query="completely novel query string not in eval set at all")
         assert ex.query.startswith("completely novel")
 
 
@@ -285,9 +279,7 @@ class TestRuleL6TrainingIdIntegrity:
 
     def test_correct_training_id_accepted(self) -> None:
         ex = _make_valid_example()
-        assert ex.training_id == compute_training_id(
-            ex.query, ex.positive_id, ex.creation_method
-        )
+        assert ex.training_id == compute_training_id(ex.query, ex.positive_id, ex.creation_method)
 
 
 # ---------------------------------------------------------------------------

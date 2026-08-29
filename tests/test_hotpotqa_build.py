@@ -49,6 +49,7 @@ from training_schema import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _raw(
     uid: str = "mock_001",
     question: str = "What is the capital of France",
@@ -116,9 +117,7 @@ class TestDocSplit:
 
     def test_approximate_ratio(self) -> None:
         """~20% should be dev, ~80% train over 1000 random IDs."""
-        dev_count = sum(
-            1 for i in range(1000) if _doc_split(f"hotpotqa/Article_{i}") == "dev"
-        )
+        dev_count = sum(1 for i in range(1000) if _doc_split(f"hotpotqa/Article_{i}") == "dev")
         # Expect roughly 200 ± 50
         assert 140 < dev_count < 280, f"Unexpected dev ratio: {dev_count}/1000"
 
@@ -179,9 +178,7 @@ class TestBuildExamplesValid:
             source_file="hotpot_train_v1.1.json",
         )
         assert len(examples) == 1
-        expected_tid = compute_training_id(
-            raw.question, _normalise_title(TRAIN_TITLE), "human"
-        )
+        expected_tid = compute_training_id(raw.question, _normalise_title(TRAIN_TITLE), "human")
         assert examples[0].training_id == expected_tid
 
     def test_dev_example_built(self) -> None:
@@ -208,7 +205,7 @@ class TestDocumentSplitAssignment:
         raw = _raw(question="Train-hashing doc question", sup_titles=[TRAIN_TITLE])
         examples, _ = build_examples(
             _iter([raw]),
-            target_split="dev",       # asking for dev, but doc hashes to train
+            target_split="dev",  # asking for dev, but doc hashes to train
             doc_exclusion_set=set(),
             max_count=10,
             source_file="hotpot_dev_distractor_v1.json",
@@ -233,7 +230,7 @@ class TestDocumentSplitAssignment:
         examples, stats = build_examples(
             _iter([raw]),
             target_split="train",
-            doc_exclusion_set={pos_id},   # pre-committed to opposing split
+            doc_exclusion_set={pos_id},  # pre-committed to opposing split
             max_count=10,
             source_file="hotpot_train_v1.1.json",
         )
@@ -274,7 +271,7 @@ class TestL1QueryIsolation:
     def test_eval_query_rejected(self) -> None:
         if not EVAL_QUERIES:
             pytest.skip("EVAL_QUERIES empty — run from repo root")
-        eval_q = next(iter(EVAL_QUERIES))   # already lowercased
+        eval_q = next(iter(EVAL_QUERIES))  # already lowercased
         raw = _raw(question=eval_q, sup_titles=[TRAIN_TITLE])
         examples, stats = build_examples(
             _iter([raw]),
@@ -388,9 +385,7 @@ class TestL4HardNegativeIsolation:
             source_file="hotpot_train_v1.1.json",
         )
         assert len(examples) == 1
-        assert all(
-            nid not in EVAL_POSITIVE_IDS for nid in examples[0].hard_negative_ids
-        )
+        assert all(nid not in EVAL_POSITIVE_IDS for nid in examples[0].hard_negative_ids)
 
 
 # ---------------------------------------------------------------------------
@@ -405,8 +400,11 @@ class TestCapEnforcement:
             for i in range(20)
         ]
         # Override TRAIN_TITLE usage — create titles that hash to train
-        train_titles = [f"TrainTitle_{i:04d}" for i in range(200)
-                        if _doc_split(_normalise_title(f"TrainTitle_{i:04d}")) == "train"][:20]
+        train_titles = [
+            f"TrainTitle_{i:04d}"
+            for i in range(200)
+            if _doc_split(_normalise_title(f"TrainTitle_{i:04d}")) == "train"
+        ][:20]
         raws = [
             _raw(question=f"Unique question number {i}", sup_titles=[t])
             for i, t in enumerate(train_titles)

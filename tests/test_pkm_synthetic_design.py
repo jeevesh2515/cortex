@@ -157,14 +157,10 @@ class TestHotpotQADatasetInvariants:
             pytest.skip("Dataset files not generated in working directory")
 
         train_lines = [
-            json.loads(line)
-            for line in self.train_path.read_text().splitlines()
-            if line.strip()
+            json.loads(line) for line in self.train_path.read_text().splitlines() if line.strip()
         ]
         dev_lines = [
-            json.loads(line)
-            for line in self.dev_path.read_text().splitlines()
-            if line.strip()
+            json.loads(line) for line in self.dev_path.read_text().splitlines() if line.strip()
         ]
 
         assert len(train_lines) == 300
@@ -175,14 +171,10 @@ class TestHotpotQADatasetInvariants:
             pytest.skip("Dataset files not generated in working directory")
 
         train_lines = [
-            json.loads(line)
-            for line in self.train_path.read_text().splitlines()
-            if line.strip()
+            json.loads(line) for line in self.train_path.read_text().splitlines() if line.strip()
         ]
         dev_lines = [
-            json.loads(line)
-            for line in self.dev_path.read_text().splitlines()
-            if line.strip()
+            json.loads(line) for line in self.dev_path.read_text().splitlines() if line.strip()
         ]
 
         train_docs = {e["positive_id"] for e in train_lines}
