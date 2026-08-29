@@ -50,7 +50,8 @@ Licence: CC BY-SA 4.0
 
 | Source | Status | Scope |
 |---|---|---|
-| **PKM synthetic pairs** | **Designed** (Approval B granted) | 200 train + 50 dev; project-authored markdown seeds; MIT license |
+| **PKM synthetic pairs** | **Built & Evaluated** (Milestone 3C) | 200 train + 50 dev; project-authored markdown seeds; MIT license |
+| **HotpotQA Mined Hard Negatives** | **Built & Validated** (Deterministic Mining) | 300 queries × 5 negatives (1,500 total negatives); hybrid BM25 + all-MiniLM-L6-v2 mined; CC BY-SA 4.0 |
 
 ---
 

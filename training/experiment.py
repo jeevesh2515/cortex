@@ -31,6 +31,7 @@ from typing import Any
 import torch
 import yaml
 from sentence_transformers import InputExample, SentenceTransformer
+
 try:
     from sentence_transformers.sentence_transformer import losses
 except ImportError:
@@ -94,7 +95,9 @@ def ndcg_at_k(retrieved: Sequence[str], expected: frozenset[str], k: int) -> flo
     if not expected or k <= 0:
         return 0.0
     top = _dedupe(retrieved)[:k]
-    dcg = sum(1.0 / math.log2(i + 1) for i, note_id in enumerate(top, start=1) if note_id in expected)
+    dcg = sum(
+        1.0 / math.log2(i + 1) for i, note_id in enumerate(top, start=1) if note_id in expected
+    )
     idcg = sum(1.0 / math.log2(i + 1) for i in range(1, min(k, len(expected)) + 1))
     return dcg / idcg if idcg > 0.0 else 0.0
 
@@ -116,7 +119,9 @@ def prepare_combined_training_set() -> list[dict]:
 
     combined = hotpot_examples + pkm_examples
     COMBINED_TRAIN_PATH.write_text("\n".join(json.dumps(ex) for ex in combined) + "\n")
-    logger.info(f"Combined training set written: {len(combined)} examples ({len(hotpot_examples)} HotpotQA + {len(pkm_examples)} PKM)")
+    logger.info(
+        f"Combined training set written: {len(combined)} examples ({len(hotpot_examples)} HotpotQA + {len(pkm_examples)} PKM)"
+    )
     return combined
 
 
@@ -370,7 +375,9 @@ def run_experiment() -> dict[str, Any]:
 
     # 3. Controlled fine-tuning
     logger.info("Executing fine-tuning on combined 500-pair training set...")
-    fine_tuned_model, train_meta = run_fine_tuning(baseline_model, train_data, epochs=3, batch_size=16)
+    fine_tuned_model, train_meta = run_fine_tuning(
+        baseline_model, train_data, epochs=3, batch_size=16
+    )
 
     # 4. Fine-tuned model evaluation
     logger.info("Evaluating fine-tuned model on HotpotQA dev...")
@@ -422,7 +429,9 @@ def run_experiment() -> dict[str, Any]:
         verdict_summary = "In-domain retrieval improved, but slight regression observed on specific out-of-domain edge queries. Recommend investigating loss weighting and hard-negative mining."
     else:
         verdict = "REJECT"
-        verdict_summary = "Fine-tuning failed to demonstrate net-positive generalization across held-out sets."
+        verdict_summary = (
+            "Fine-tuning failed to demonstrate net-positive generalization across held-out sets."
+        )
 
     results = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -443,7 +452,9 @@ def run_experiment() -> dict[str, Any]:
                     "recall_at_10": round(ft_hotpot.recall_at_10 - base_hotpot.recall_at_10, 4),
                     "mrr": round(ft_hotpot.mrr - base_hotpot.mrr, 4),
                     "ndcg_at_10": round(ft_hotpot.ndcg_at_10 - base_hotpot.ndcg_at_10, 4),
-                    "avg_latency_ms": round(ft_hotpot.avg_latency_ms - base_hotpot.avg_latency_ms, 2),
+                    "avg_latency_ms": round(
+                        ft_hotpot.avg_latency_ms - base_hotpot.avg_latency_ms, 2
+                    ),
                 },
                 "regressions_count": len(hotpot_regressions),
                 "regressions": hotpot_regressions,
@@ -457,7 +468,9 @@ def run_experiment() -> dict[str, Any]:
                     "recall_at_10": round(ft_cortex.recall_at_10 - base_cortex.recall_at_10, 4),
                     "mrr": round(ft_cortex.mrr - base_cortex.mrr, 4),
                     "ndcg_at_10": round(ft_cortex.ndcg_at_10 - base_cortex.ndcg_at_10, 4),
-                    "avg_latency_ms": round(ft_cortex.avg_latency_ms - base_cortex.avg_latency_ms, 2),
+                    "avg_latency_ms": round(
+                        ft_cortex.avg_latency_ms - base_cortex.avg_latency_ms, 2
+                    ),
                 },
                 "regressions_count": len(cortex_regressions),
                 "regressions": cortex_regressions,
@@ -494,9 +507,9 @@ def generate_markdown_report(res: dict[str, Any]) -> None:
 
     md = f"""# Milestone 3C: Embedding Fine-Tuning Experiment Report
 
-**Date**: {res['timestamp']}  
+**Date**: {res["timestamp"]}  
 **Status**: Completed  
-**Recommendation Verdict**: **{rec['verdict']}**  
+**Recommendation Verdict**: **{rec["verdict"]}**  
 
 ---
 
@@ -504,14 +517,14 @@ def generate_markdown_report(res: dict[str, Any]) -> None:
 
 | Property | Value |
 |---|---|
-| **Base Model** | `{m['name']}` |
-| **Model Licence** | `{m['licence']}` |
-| **Model Revision** | `{m['revision'][:16]}...` |
-| **Parameter Count** | {m['parameters']:,} ({m['parameters']/1e6:.1f}M) |
-| **Training Set Size** | {t['training_examples']} pairs (300 HotpotQA + 200 PKM Synthetic) |
-| **Device** | `{t['device']}` ({platform.processor() or platform.machine()}) |
-| **Training Duration** | {t['training_duration_seconds']}s |
-| **Hyperparameters** | Epochs: {t['epochs']}, Batch Size: {t['batch_size']}, LR: {t['learning_rate']} |
+| **Base Model** | `{m["name"]}` |
+| **Model Licence** | `{m["licence"]}` |
+| **Model Revision** | `{m["revision"][:16]}...` |
+| **Parameter Count** | {m["parameters"]:,} ({m["parameters"] / 1e6:.1f}M) |
+| **Training Set Size** | {t["training_examples"]} pairs (300 HotpotQA + 200 PKM Synthetic) |
+| **Device** | `{t["device"]}` ({platform.processor() or platform.machine()}) |
+| **Training Duration** | {t["training_duration_seconds"]}s |
+| **Hyperparameters** | Epochs: {t["epochs"]}, Batch Size: {t["batch_size"]}, LR: {t["learning_rate"]} |
 | **Loss Function** | `MultipleNegativesRankingLoss` (InfoNCE) |
 
 ---
@@ -522,29 +535,29 @@ def generate_markdown_report(res: dict[str, Any]) -> None:
 
 | Metric | Baseline | Fine-Tuned | Delta |
 |---|---|---|---|
-| **Recall@1** | {hp_b['recall_at_1']:.4f} | {hp_ft['recall_at_1']:.4f} | **{'+' if hp_d['recall_at_1']>=0 else ''}{hp_d['recall_at_1']:.4f}** |
-| **Recall@5** | {hp_b['recall_at_5']:.4f} | {hp_ft['recall_at_5']:.4f} | **{'+' if hp_d['recall_at_5']>=0 else ''}{hp_d['recall_at_5']:.4f}** |
-| **Recall@10** | {hp_b['recall_at_10']:.4f} | {hp_ft['recall_at_10']:.4f} | **{'+' if hp_d['recall_at_10']>=0 else ''}{hp_d['recall_at_10']:.4f}** |
-| **MRR** | {hp_b['mrr']:.4f} | {hp_ft['mrr']:.4f} | **{'+' if hp_d['mrr']>=0 else ''}{hp_d['mrr']:.4f}** |
-| **nDCG@10** | {hp_b['ndcg_at_10']:.4f} | {hp_ft['ndcg_at_10']:.4f} | **{'+' if hp_d['ndcg_at_10']>=0 else ''}{hp_d['ndcg_at_10']:.4f}** |
-| **Avg Query Latency** | {hp_b['avg_latency_ms']:.2f} ms | {hp_ft['avg_latency_ms']:.2f} ms | {hp_d['avg_latency_ms']:+.2f} ms |
+| **Recall@1** | {hp_b["recall_at_1"]:.4f} | {hp_ft["recall_at_1"]:.4f} | **{"+" if hp_d["recall_at_1"] >= 0 else ""}{hp_d["recall_at_1"]:.4f}** |
+| **Recall@5** | {hp_b["recall_at_5"]:.4f} | {hp_ft["recall_at_5"]:.4f} | **{"+" if hp_d["recall_at_5"] >= 0 else ""}{hp_d["recall_at_5"]:.4f}** |
+| **Recall@10** | {hp_b["recall_at_10"]:.4f} | {hp_ft["recall_at_10"]:.4f} | **{"+" if hp_d["recall_at_10"] >= 0 else ""}{hp_d["recall_at_10"]:.4f}** |
+| **MRR** | {hp_b["mrr"]:.4f} | {hp_ft["mrr"]:.4f} | **{"+" if hp_d["mrr"] >= 0 else ""}{hp_d["mrr"]:.4f}** |
+| **nDCG@10** | {hp_b["ndcg_at_10"]:.4f} | {hp_ft["ndcg_at_10"]:.4f} | **{"+" if hp_d["ndcg_at_10"] >= 0 else ""}{hp_d["ndcg_at_10"]:.4f}** |
+| **Avg Query Latency** | {hp_b["avg_latency_ms"]:.2f} ms | {hp_ft["avg_latency_ms"]:.2f} ms | {hp_d["avg_latency_ms"]:+.2f} ms |
 
 ### 2.2 Frozen Cortex Eval v1 (25 queries, 11 vault notes)
 
 | Metric | Baseline | Fine-Tuned | Delta |
 |---|---|---|---|
-| **Recall@1** | {cx_b['recall_at_1']:.4f} | {cx_ft['recall_at_1']:.4f} | **{'+' if cx_d['recall_at_1']>=0 else ''}{cx_d['recall_at_1']:.4f}** |
-| **Recall@5** | {cx_b['recall_at_5']:.4f} | {cx_ft['recall_at_5']:.4f} | **{'+' if cx_d['recall_at_5']>=0 else ''}{cx_d['recall_at_5']:.4f}** |
-| **Recall@10** | {cx_b['recall_at_10']:.4f} | {cx_ft['recall_at_10']:.4f} | **{'+' if cx_d['recall_at_10']>=0 else ''}{cx_d['recall_at_10']:.4f}** |
-| **MRR** | {cx_b['mrr']:.4f} | {cx_ft['mrr']:.4f} | **{'+' if cx_d['mrr']>=0 else ''}{cx_d['mrr']:.4f}** |
-| **nDCG@10** | {cx_b['ndcg_at_10']:.4f} | {cx_ft['ndcg_at_10']:.4f} | **{'+' if cx_d['ndcg_at_10']>=0 else ''}{cx_d['ndcg_at_10']:.4f}** |
-| **Avg Query Latency** | {cx_b['avg_latency_ms']:.2f} ms | {cx_ft['avg_latency_ms']:.2f} ms | {cx_d['avg_latency_ms']:+.2f} ms |
+| **Recall@1** | {cx_b["recall_at_1"]:.4f} | {cx_ft["recall_at_1"]:.4f} | **{"+" if cx_d["recall_at_1"] >= 0 else ""}{cx_d["recall_at_1"]:.4f}** |
+| **Recall@5** | {cx_b["recall_at_5"]:.4f} | {cx_ft["recall_at_5"]:.4f} | **{"+" if cx_d["recall_at_5"] >= 0 else ""}{cx_d["recall_at_5"]:.4f}** |
+| **Recall@10** | {cx_b["recall_at_10"]:.4f} | {cx_ft["recall_at_10"]:.4f} | **{"+" if cx_d["recall_at_10"] >= 0 else ""}{cx_d["recall_at_10"]:.4f}** |
+| **MRR** | {cx_b["mrr"]:.4f} | {cx_ft["mrr"]:.4f} | **{"+" if cx_d["mrr"] >= 0 else ""}{cx_d["mrr"]:.4f}** |
+| **nDCG@10** | {cx_b["ndcg_at_10"]:.4f} | {cx_ft["ndcg_at_10"]:.4f} | **{"+" if cx_d["ndcg_at_10"] >= 0 else ""}{cx_d["ndcg_at_10"]:.4f}** |
+| **Avg Query Latency** | {cx_b["avg_latency_ms"]:.2f} ms | {cx_ft["avg_latency_ms"]:.2f} ms | {cx_d["avg_latency_ms"]:+.2f} ms |
 
 ---
 
 ## 3. Regression Analysis
 
-### 3.1 Cortex Eval v1 Per-Query Regressions ({len(e['cortex_eval_v1']['regressions'])} detected)
+### 3.1 Cortex Eval v1 Per-Query Regressions ({len(e["cortex_eval_v1"]["regressions"])} detected)
 """
     if not e["cortex_eval_v1"]["regressions"]:
         md += "\n> **Zero regressions detected on the frozen Cortex Eval v1 benchmark.** All 25 queries matched or exceeded baseline performance.\n"
@@ -566,10 +579,10 @@ def generate_markdown_report(res: dict[str, Any]) -> None:
 
 ## 5. Recommendation & Next Steps
 
-**Verdict**: **{rec['verdict']}**
+**Verdict**: **{rec["verdict"]}**
 
 **Rationale**:
-{rec['rationale']}
+{rec["rationale"]}
 
 **Proposed Next Milestones**:
 1. Keep the experimental pipeline versioned in `training/experiment.py`.

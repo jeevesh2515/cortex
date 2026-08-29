@@ -43,14 +43,10 @@ try:
     with open(_EVAL_CASES_PATH) as _f:
         _eval_data = yaml.safe_load(_f)
     EVAL_POSITIVE_IDS: frozenset[str] = frozenset(
-        doc_id
-        for case in _eval_data.get("cases", [])
-        for doc_id in case.get("expect", [])
+        doc_id for case in _eval_data.get("cases", []) for doc_id in case.get("expect", [])
     )
     EVAL_QUERIES: frozenset[str] = frozenset(
-        case["query"].strip().lower()
-        for case in _eval_data.get("cases", [])
-        if "query" in case
+        case["query"].strip().lower() for case in _eval_data.get("cases", []) if "query" in case
     )
 except FileNotFoundError:
     # Allow import outside repo root (e.g. standalone tests with mocked data)
@@ -74,7 +70,7 @@ _EVAL_VAULT_PREFIXES: tuple[str, ...] = (
 )
 
 # Allowed creation methods.
-CreationMethod = Literal["human", "synthetic_llm", "mined_bm25", "mined_dense"]
+CreationMethod = Literal["human", "synthetic_llm", "mined_bm25", "mined_dense", "mined_hybrid"]
 
 # Allowed splits. "eval" is intentionally absent.
 Split = Literal["train", "dev"]
@@ -89,7 +85,7 @@ VALID_CATEGORIES = frozenset(
         "temporal_query",
         "distractor_resistance",
         "multi_topic",
-        "general",          # permitted for training-only examples
+        "general",  # permitted for training-only examples
     }
 )
 
@@ -137,9 +133,7 @@ class TrainingExample(BaseModel):
     )
     licence: str = Field(min_length=1, description="SPDX identifier or 'proprietary'.")
     category: str = Field(description="Query type; must be in VALID_CATEGORIES.")
-    creation_method: CreationMethod = Field(
-        description="How this example was created."
-    )
+    creation_method: CreationMethod = Field(description="How this example was created.")
     created_at: str = Field(min_length=1, description="ISO-8601 UTC timestamp.")
     notes: str | None = Field(
         default=None,
@@ -185,9 +179,7 @@ class TrainingExample(BaseModel):
     def hard_negatives_not_eval_vault(cls, v: list[str]) -> list[str]:
         """L-4: hard negatives must not come from eval vault."""
         for nid in v:
-            if nid in EVAL_POSITIVE_IDS or any(
-                nid.startswith(pfx) for pfx in _EVAL_VAULT_PREFIXES
-            ):
+            if nid in EVAL_POSITIVE_IDS or any(nid.startswith(pfx) for pfx in _EVAL_VAULT_PREFIXES):
                 raise ValueError(
                     f"hard_negative_id '{nid}' is from the eval vault (L-4 violation). "
                     "Hard negatives must be sourced from the approved training corpus only."
@@ -215,9 +207,7 @@ class TrainingExample(BaseModel):
 
         # hard_negative_ids and hard_negative_texts must be parallel lists.
         if len(self.hard_negative_ids) != len(self.hard_negative_texts):
-            raise ValueError(
-                "hard_negative_ids and hard_negative_texts must have equal length."
-            )
+            raise ValueError("hard_negative_ids and hard_negative_texts must have equal length.")
 
         # positive_id must not appear in hard_negative_ids.
         if self.positive_id in self.hard_negative_ids:
@@ -227,7 +217,7 @@ class TrainingExample(BaseModel):
             )
 
         # synthetic_llm and mined_* examples must declare details in notes.
-        if self.creation_method in {"synthetic_llm", "mined_bm25", "mined_dense"}:
+        if self.creation_method in {"synthetic_llm", "mined_bm25", "mined_dense", "mined_hybrid"}:
             if not self.notes:
                 raise ValueError(
                     f"creation_method '{self.creation_method}' requires a non-empty 'notes' "
@@ -236,9 +226,7 @@ class TrainingExample(BaseModel):
 
         # human examples should have a provenance_url.
         if self.creation_method == "human" and not self.provenance_url:
-            raise ValueError(
-                "creation_method 'human' requires provenance_url pointing to source."
-            )
+            raise ValueError("creation_method 'human' requires provenance_url pointing to source.")
 
         return self
 
@@ -246,7 +234,9 @@ class TrainingExample(BaseModel):
 class TrainingDataset(BaseModel):
     """A named, versioned collection of TrainingExamples."""
 
-    dataset_id: str = Field(min_length=1, description="Stable dataset name, e.g. 'cortex-train-v1'.")
+    dataset_id: str = Field(
+        min_length=1, description="Stable dataset name, e.g. 'cortex-train-v1'."
+    )
     schema_version: str = Field(default="1.0.0")
     description: str = Field(default="")
     examples: list[TrainingExample] = Field(default_factory=list)
@@ -292,7 +282,5 @@ def validate_no_eval_leakage(
         # L-4 batch check
         for nid in ex.hard_negative_ids:
             if nid in EVAL_POSITIVE_IDS:
-                violations.append(
-                    f"[L-4] {ex.training_id}: hard_negative '{nid}' is eval positive"
-                )
+                violations.append(f"[L-4] {ex.training_id}: hard_negative '{nid}' is eval positive")
     return violations

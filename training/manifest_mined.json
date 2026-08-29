@@ -1,0 +1,42 @@
+{
+  "manifest_version": "1.0.0",
+  "pipeline": "deterministic_hard_negative_mining",
+  "timestamp": "2026-08-29T15:53:59.259128+00:00",
+  "seed": 42,
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "model_revision": "c97b51e065bf022ab3b544eb40778c1db1755106",
+  "corpus_info": {
+    "source": "hotpotqa_train_partition",
+    "corpus_sha256": "d444a7e76953dfafe45101e593d0672911727133b718bed6e0e8ce1e50c2157c",
+    "isolation": "train_partition_strict"
+  },
+  "dataset_statistics": {
+    "total_training_examples": 300,
+    "total_mined_negatives": 1500,
+    "negatives_per_query_target": 5,
+    "total_candidates_retrieved": 12769,
+    "total_candidates_rejected": 569,
+    "rejection_breakdown": {
+      "EXACT_POSITIVE": 296,
+      "MULTIHOP_SUPPORTING_FACT": 270,
+      "DUPLICATE_TEXT": 3
+    },
+    "retriever_distribution": {
+      "hybrid": 565,
+      "dense": 608,
+      "bm25": 327
+    }
+  },
+  "output_file": {
+    "path": "training/train_mined.jsonl",
+    "sha256": "ed199df73ef693dd0f55acbc4c90362317112d47e2ffbbfe96d8ae395431db6d",
+    "line_count": 300
+  },
+  "isolation_guarantees": {
+    "L1_eval_query_isolation": "PASSED (0 eval queries present)",
+    "L2_eval_positive_isolation": "PASSED (0 eval positive IDs present)",
+    "L4_eval_negative_isolation": "PASSED (0 eval vault IDs present)",
+    "dev_document_disjointness": "PASSED (0 dev positive IDs present)",
+    "positive_negative_disjointness": "PASSED (0 query positive collisions)"
+  }
+}

@@ -93,13 +93,14 @@ SOURCES: dict[str, dict] = {
 MAX_TRAIN = 300
 MAX_DEV = 50
 SCHEMA_VERSION = "1.0.0"
-CREATION_METHOD = "human"       # relevance labels are human crowd-annotated
+CREATION_METHOD = "human"  # relevance labels are human crowd-annotated
 SOURCE_NAME = "hotpotqa"
 LICENCE = "CC-BY-SA-4.0"
 
 # ---------------------------------------------------------------------------
 # Document-level split assignment
 # ---------------------------------------------------------------------------
+
 
 def _doc_split(doc_id: str) -> str:
     """
@@ -110,7 +111,7 @@ def _doc_split(doc_id: str) -> str:
     positive in both train and dev.
     """
     h = hashlib.sha256(doc_id.encode("utf-8")).digest()[0]  # 0–255
-    return "dev" if h < 52 else "train"   # ~20% dev, ~80% train
+    return "dev" if h < 52 else "train"  # ~20% dev, ~80% train
 
 
 def _normalise_title(title: str) -> str:
@@ -121,6 +122,7 @@ def _normalise_title(title: str) -> str:
 # ---------------------------------------------------------------------------
 # Download helpers
 # ---------------------------------------------------------------------------
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -157,8 +159,7 @@ def download_file(filename: str, *, skip: bool = False) -> Path:
 
     if skip:
         raise FileNotFoundError(
-            f"--skip-download requested but {dest} not found. "
-            "Run without --skip-download first."
+            f"--skip-download requested but {dest} not found. Run without --skip-download first."
         )
 
     url = meta["url"]
@@ -177,12 +178,13 @@ def download_file(filename: str, *, skip: bool = False) -> Path:
 # HotpotQA parsing
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _RawExample:
     uid: str
     question: str
-    supporting_titles: list[str]     # unique titles from supporting_facts
-    context: list[tuple[str, str]]   # (title, full_text) for all paragraphs
+    supporting_titles: list[str]  # unique titles from supporting_facts
+    context: list[tuple[str, str]]  # (title, full_text) for all paragraphs
 
 
 def _parse_hotpotqa(path: Path) -> Iterator[_RawExample]:
@@ -255,18 +257,18 @@ def _parse_hotpotqa(path: Path) -> Iterator[_RawExample]:
         )
 
 
-
 # ---------------------------------------------------------------------------
 # Example builder
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class _RejectionStats:
     no_supporting_docs: int = 0
     no_hard_negatives: int = 0
-    split_conflict: int = 0    # positives span both train and dev pools
-    eval_query_leak: int = 0   # L-1
-    eval_doc_leak: int = 0     # L-2 / L-4
+    split_conflict: int = 0  # positives span both train and dev pools
+    eval_query_leak: int = 0  # L-1
+    eval_doc_leak: int = 0  # L-2 / L-4
     schema_error: int = 0
     cap_reached: int = 0
     total_seen: int = 0
@@ -397,7 +399,7 @@ def build_examples(
             ex = TrainingExample(
                 training_id=tid,
                 version=SCHEMA_VERSION,
-                split=target_split,          # type: ignore[arg-type]
+                split=target_split,  # type: ignore[arg-type]
                 query=raw.question,
                 positive_id=pos_id,
                 positive_text=pos_text,
@@ -406,7 +408,7 @@ def build_examples(
                 source=f"{SOURCE_NAME}/{source_file}",
                 provenance_url=f"https://hotpotqa.github.io/#{raw.uid}",
                 licence=LICENCE,
-                category="multi_topic",      # HotpotQA is multi-hop / multi-topic
+                category="multi_topic",  # HotpotQA is multi-hop / multi-topic
                 creation_method=CREATION_METHOD,  # type: ignore[arg-type]
                 created_at=datetime.now(timezone.utc).isoformat(),
                 notes=None,
@@ -425,6 +427,7 @@ def build_examples(
 # ---------------------------------------------------------------------------
 # Manifest writer
 # ---------------------------------------------------------------------------
+
 
 def write_manifest(
     *,
@@ -496,6 +499,7 @@ def write_manifest(
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -537,7 +541,7 @@ def main(argv: list[str] | None = None) -> int:
     dev_examples, dev_stats = build_examples(
         dev_raw,
         target_split="dev",
-        doc_exclusion_set=set(),        # no prior constraint on dev
+        doc_exclusion_set=set(),  # no prior constraint on dev
         max_count=MAX_DEV,
         source_file="hotpot_dev_distractor_v1.json",
     )

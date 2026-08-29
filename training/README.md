@@ -32,6 +32,13 @@ Combines HotpotQA and PKM synthetic data (500 pairs total), trains `sentence-tra
 python training/experiment.py
 ```
 
+### Step 4: Mine Deterministic Hard Negatives
+Mines hybrid lexical (BM25) and semantic (`all-MiniLM-L6-v2`) hard negatives across the training passage corpus with strict positive/eval/dev isolation:
+```bash
+# Run deterministic hard-negative mining pipeline
+python training/mine_hard_negatives.py
+```
+
 ---
 
 ## 2. Model & Experiment Configuration
