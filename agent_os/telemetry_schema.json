@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cortex sanitized telemetry",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "privacy", "brain", "agents", "trust"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "privacy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["note_content_exposed", "paths_exposed", "credentials_exposed", "model_policy"],
+      "properties": {
+        "note_content_exposed": {"const": false},
+        "paths_exposed": {"const": false},
+        "credentials_exposed": {"const": false},
+        "model_policy": {"const": "cloud_only"}
+      }
+    },
+    "brain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["vault_available", "note_count", "folder_count", "graphify_available"],
+      "properties": {
+        "vault_available": {"type": "boolean"},
+        "note_count": {"type": "integer", "minimum": 0},
+        "folder_count": {"type": "integer", "minimum": 0},
+        "graphify_available": {"type": "boolean"}
+      }
+    },
+    "agents": {"type": "object", "additionalProperties": {"type": "object"}},
+    "trust": {"type": "array", "items": {"type": "object"}}
+  }
+}

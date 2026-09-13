@@ -1,0 +1,110 @@
+name: Cortex cloud Scout-Manager cycle
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: Optional run identifier
+        required: false
+        type: string
+  schedule:
+    # GitHub cron is UTC. This runs at 07:17 UTC daily.
+    - cron: "17 7 * * *"
+
+# Never allow overlapping daily cycles to mutate report-card state concurrently.
+concurrency:
+  group: cortex-cloud-cycle-${{ github.ref }}
+  cancel-in-progress: false
+
+# The workflow only reads the repository. It does not push, publish, or create releases.
+permissions:
+  contents: read
+
+jobs:
+  cloud-cycle:
+    name: Run supervised cloud Scout and Manager
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      # These are passed only to the process that needs them and are never echoed.
+      GH_TOKEN: ${{ secrets.CORTEX_GH_TOKEN }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      OPENCODE_API_BASE: ${{ secrets.OPENCODE_API_BASE }}
+      CORTEX_OS_TASK_ID: ${{ inputs.task_id || format('github-{0}', github.run_id) }}
+      CORTEX_OS_CLOUD_ONLY: "1"
+      CORTEX_VAULT: ""
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js for cloud CLIs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install cloud CLIs
+        run: npm install --global @github/copilot opencode-ai
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Validate workflow prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v copilot >/dev/null || command -v gh >/dev/null
+          command -v opencode >/dev/null || {
+            echo "OpenCode CLI is required for the configured fallback route."
+            exit 1
+          }
+          test -n "${GH_TOKEN:-}" || {
+            echo "Missing CORTEX_GH_TOKEN repository or environment secret."
+            exit 1
+          }
+          test -n "${OPENCODE_API_KEY:-}" || {
+            echo "Missing OPENCODE_API_KEY repository or environment secret."
+            exit 1
+          }
+          # A hosted runner must never receive a vault path or vault contents.
+          test -z "${CORTEX_VAULT:-}"
+          if find . -path './.git' -prune -o -type f -name '*.canvas' -print | grep -q .; then
+            echo "Vault-like files detected in the hosted checkout; refusing to run."
+            exit 1
+          fi
+
+      - name: Run privacy and unit tests
+        run: |
+          python -m pytest tests/test_router.py::TestPolicyGate -q
+          python -m pytest tests/test_env_temporal.py tests/test_obsidian.py -q
+
+      - name: Verify cloud-only loop syntax
+        run: |
+          sh -n loop.sh
+          python -m py_compile agent_os/loop.py agent_os/extract_json.py
+          ! grep -Eqi 'ollama|lmstudio|127\.0\.0\.1:11434|localhost:11434' loop.sh agent_os/agents.yaml
+
+      - name: Run supervised cloud cycle
+        run: ./loop.sh
+
+      - name: Upload report-card artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-report-${{ github.run_id }}
+          path: |
+            agent_os/reports/latest.json
+            agent_os/runs/
+          if-no-files-found: warn
+          retention-days: 14

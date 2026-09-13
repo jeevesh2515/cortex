@@ -21,8 +21,28 @@ cortex.toml
 .idea/
 .vscode/
 
-# Training raw data and checkpoints (do not commit)
+# Local/private knowledge and generated graph exports
+**/graphify-out/
+graphify-out/
+
+# Local agent runtime state and raw transcripts
+agent_os/state.json
+agent_os/runs/
+agent_os/reports/
+
+# Local Paul/Claude framework state; keep project code and docs explicit
+.claude/
+
+# Frontend build output
+frontend/dist/
+
+# Training raw data, datasets, checkpoints, and run artifacts
 training/raw/
 training/*.jsonl
 training/checkpoints/
 training/models/
+training/run_status.json
+training/*.pid
+training/*.log
+training/*.err
+training/*.out

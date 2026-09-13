@@ -1,0 +1,79 @@
+name: Cortex daily health and telemetry check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run after the daily Scout/Manager cycle window. GitHub cron uses UTC.
+    - cron: "47 7 * * *"
+
+concurrency:
+  group: cortex-daily-health-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  health-check:
+    name: Dashboard and telemetry health
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      CORTEX_DASHBOARD_PORT: "8765"
+      # Explicitly prevent a hosted runner from reading a local vault.
+      CORTEX_VAULT: ""
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run telemetry privacy regression tests
+        run: python -m pytest tests/test_telemetry_privacy.py -q
+
+      - name: Verify cloud-only and syntax boundaries
+        run: |
+          set -euo pipefail
+          sh -n loop.sh
+          python -m py_compile agent_os/dashboard.py agent_os/health_check.py
+          ! grep -Eqi 'ollama|lmstudio|127\.0\.0\.1:11434|localhost:11434' loop.sh agent_os/agents.yaml
+          test -z "${CORTEX_VAULT}"
+
+      - name: Start isolated dashboard
+        run: |
+          set -euo pipefail
+          nohup python agent_os/dashboard.py >/tmp/cortex-health-dashboard.log 2>&1 &
+          echo $! >/tmp/cortex-health-dashboard.pid
+          for attempt in $(seq 1 10); do
+            if curl --fail --silent --show-error http://127.0.0.1:${CORTEX_DASHBOARD_PORT}/api/analytics >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cortex-health-dashboard.log
+          exit 1
+
+      - name: Validate live telemetry payload
+        run: python agent_os/health_check.py --output agent_os/reports/health-check.json
+
+      - name: Upload sanitized health result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-health-${{ github.run_id }}
+          path: agent_os/reports/health-check.json
+          if-no-files-found: warn
+          retention-days: 14

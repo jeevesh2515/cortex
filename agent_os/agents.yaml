@@ -1,0 +1,44 @@
+version: 1
+system: Cortex OS
+privacy:
+  vault_mode: local_only
+  upload_notes: false
+  model_policy: cloud_only
+  local_inference: disabled
+agents:
+  scout:
+    purpose: Inspect project health and propose bounded tasks.
+    primary_model: github-copilot-cli
+    fallback_model: nvidia/openai/gpt-oss-20b
+    writes: false
+    requires_valid_json: true
+  manager:
+    purpose: Convert scout findings into acceptance-driven plans.
+    primary_model: github-copilot-cli
+    fallback_model: nvidia/openai/gpt-oss-20b
+    writes: [plans]
+    requires_valid_json: true
+  builder:
+    purpose: Implement an approved plan in a fresh worktree.
+    model: unavailable_until_explicitly_verified
+    writes: [worktree]
+  inspector:
+    purpose: Review output against acceptance criteria.
+    model: unavailable_until_explicitly_verified
+    writes: [reports]
+  librarian:
+    purpose: Index the local Obsidian brain.
+    model: deterministic
+    writes: [graph_artifacts]
+  notifier:
+    purpose: Record local alerts when trust drops.
+    model: deterministic
+    writes: [reports]
+grade_policy:
+  promotion:
+    min_completed_runs: 20
+    min_success_rate: 0.95
+  revoke:
+    below_success_rate: 0.90
+  default_mode: supervised
+  external_side_effects: disabled
